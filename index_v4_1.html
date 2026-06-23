@@ -1312,7 +1312,7 @@ const NAV=[
   {id:'eintraege',icon:'📋',lbl:()=>t('nav_eintraege'),show:()=>true},
   {id:'baustellen',icon:'🏗',lbl:()=>t('nav_baustellen'),show:()=>true},
   {id:'arbeitsschutz',icon:'⛑',lbl:()=>t('nav_arbeitsschutz'),show:()=>true},
-  {id:'tagesgb',icon:'📝',lbl:()=>t('nav_tagesgb'),show:()=>CAN.fillTagesGB(CU.rolle)},
+  {id:'tagesgb',icon:'📋',lbl:()=>'Tages-GB',show:()=>CAN.fillTagesGB(CU.rolle)},
   {id:'lmra',icon:'🔍',lbl:()=>'LMRA',show:()=>CAN.lmra(CU.rolle)},
   {id:'chef',icon:'📊',lbl:()=>t('nav_chef'),show:()=>CAN.seeChef(CU.rolle)},
   {id:'urlaub',icon:'📅',lbl:()=>t('nav_urlaub'),show:()=>CAN.seeVacation(CU.rolle)},
