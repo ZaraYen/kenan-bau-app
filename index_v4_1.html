@@ -549,6 +549,7 @@ td.dim{color:var(--text2)}
       <div class="page" id="p-tagesgb"></div>
       <div class="page" id="p-lmra"></div>
       <div class="page" id="p-bszuweisung"></div>
+      <div class="page" id="p-betriebsanweisungen"></div>
       <div class="page" id="p-chef"></div>
       <div class="page" id="p-urlaub"></div>
       <div class="page" id="p-bautagesbericht"></div>
@@ -1318,6 +1319,7 @@ const NAV=[
   {id:'bautagesbericht',icon:'📋',lbl:()=>t('nav_bautagesbericht'),show:()=>true},
   {id:'fotodoku',icon:'📸',lbl:()=>t('nav_fotodoku'),show:()=>true},
   {id:'bszuweisung',icon:'🔑',lbl:()=>'BS-Zuweisung',show:()=>CAN.manageBZuweisung(CU.rolle)},
+  {id:'betriebsanweisungen',icon:'📄',lbl:()=>'Betriebsanweisungen',show:()=>true},
   {id:'settings',icon:'⚙',lbl:()=>t('nav_settings'),show:()=>CAN.manageUsers(CU.rolle)}
 ];
 
@@ -1379,6 +1381,7 @@ async function renderPage(id){
     tagesgb:renderTagesGB,
     lmra:renderLMRA,
     bszuweisung:renderBSZuweisung,
+    betriebsanweisungen:renderBetriebsanweisungen,
     chef:renderChef,
     urlaub:renderUrlaub,
     bautagesbericht:renderBautagesbericht,
@@ -4342,6 +4345,117 @@ async function approveAbs(id,status){
   if(error){toast('Fehler: '+error.message,'te');return;}
   S.eintraege=await loadEintraege({});
   renderUrlaubList();toast(status==='genehmigt'?t('approve_ok'):t('approve_rej'),status==='genehmigt'?'ts':'te');
+}
+
+/* ═════════════════════════════════════ BETRIEBSANWEISUNGEN ═════════════════════════════════════ */
+const BETRIEBSANWEISUNGEN=[
+  {
+    id:'ba-01',
+    titel:'Sicherheitsunterweisung Tiefbau',
+    kategorie:'Allgemein',
+    icon:'⛑',
+    datum:'2025-01-01',
+    beschreibung:'Allgemeine Sicherheitsregeln für Tiefbauarbeiten, PSA-Pflichten und Verhaltensregeln auf der Baustelle.'
+  },
+  {
+    id:'ba-02',
+    titel:'Baggerarbeiten & Erdaushub',
+    kategorie:'Maschinen',
+    icon:'🚜',
+    datum:'2025-01-01',
+    beschreibung:'Betriebsanweisung für den sicheren Umgang mit Baggern, Schutzabstände, Sicherung des Aushubs und Leitungsschutz.'
+  },
+  {
+    id:'ba-03',
+    titel:'Arbeiten in Gräben und Gruben',
+    kategorie:'Erdbau',
+    icon:'🕳',
+    datum:'2025-01-01',
+    beschreibung:'Verbauvorschriften, Personenschutz bei Grabenarbeiten, Zugang/Ausgang, Entlüftung und Ausstieghilfen.'
+  },
+  {
+    id:'ba-04',
+    titel:'Straßenarbeiten & Verkehrssicherung',
+    kategorie:'Verkehr',
+    icon:'🚧',
+    datum:'2025-01-01',
+    beschreibung:'Absperrung und Beschilderung nach RSA, Schutzkleidung, Verhalten bei Annäherung von Fahrzeugen.'
+  },
+  {
+    id:'ba-05',
+    titel:'Umgang mit Gefahrstoffen',
+    kategorie:'Gefahrstoffe',
+    icon:'⚠',
+    datum:'2025-01-01',
+    beschreibung:'Handhabung von Kraftstoffen, Schmiermitteln, Bitumen und anderen Gefahrstoffen — Lagerung, Schutzmaßnahmen, Entsorgung.'
+  },
+  {
+    id:'ba-06',
+    titel:'Asphaltarbeiten',
+    kategorie:'Belag',
+    icon:'🛣',
+    datum:'2025-01-01',
+    beschreibung:'Sicherer Umgang mit heißem Asphalt, Einbaupflichten, Verbrennungsschutz, Gerätebedienung und Abkühlzeiten.'
+  },
+  {
+    id:'ba-07',
+    titel:'Lärm- und Vibrationsschutz',
+    kategorie:'Gesundheit',
+    icon:'🔇',
+    datum:'2025-01-01',
+    beschreibung:'Grenzwerte für Lärm und Hand-Arm-Vibration, Einsatz von Gehörschutz, Einsatzdauerplanung für vibrierende Geräte.'
+  },
+  {
+    id:'ba-08',
+    titel:'Erster Hilfe & Notfallmaßnahmen',
+    kategorie:'Notfall',
+    icon:'🚑',
+    datum:'2025-01-01',
+    beschreibung:'Notrufnummern, Standort des Verbandkastens, Erstversorgung bei Verletzungen, Meldepflichten bei Unfällen.'
+  }
+];
+
+const BA_KATEGORIE_FARBEN={
+  'Allgemein':'var(--brand)','Maschinen':'var(--amber)','Erdbau':'var(--text2)',
+  'Verkehr':'var(--red)','Gefahrstoffe':'var(--red)','Belag':'var(--text2)',
+  'Gesundheit':'var(--green)','Notfall':'var(--red)'
+};
+
+function renderBetriebsanweisungen(){
+  const pg=document.getElementById('p-betriebsanweisungen');
+  const kategorien=[...new Set(BETRIEBSANWEISUNGEN.map(b=>b.kategorie))];
+  pg.innerHTML=`
+    <div class="ph"><h2>📄 Betriebsanweisungen</h2><p>Alle gültigen Betriebsanweisungen — jederzeit abrufbar</p></div>
+    <div class="alert alert-i" style="margin-bottom:16px">ℹ Diese Anweisungen sind verbindlich. Bei Fragen wende dich an deinen Vorgesetzten.</div>
+    ${kategorien.map(kat=>`
+      <div class="sec-lbl" style="margin-top:14px">${kat}</div>
+      ${BETRIEBSANWEISUNGEN.filter(b=>b.kategorie===kat).map(b=>`
+        <div class="card" style="cursor:pointer;margin-bottom:8px" onclick="toggleBA('${b.id}')">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="font-size:26px;line-height:1;flex-shrink:0">${b.icon}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600;color:var(--text)">${b.titel}</div>
+              <div style="font-size:11px;color:var(--text2);margin-top:2px">Stand: ${b.datum} &nbsp;·&nbsp;
+                <span style="color:${BA_KATEGORIE_FARBEN[b.kategorie]||'var(--text2)'}">${b.kategorie}</span>
+              </div>
+            </div>
+            <div id="ba-chevron-${b.id}" style="color:var(--text3);font-size:16px;transition:transform .2s">▸</div>
+          </div>
+          <div id="ba-detail-${b.id}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+            <p style="font-size:13px;color:var(--text2);line-height:1.6">${b.beschreibung}</p>
+          </div>
+        </div>
+      `).join('')}
+    `).join('')}
+  `;
+}
+
+function toggleBA(id){
+  const det=document.getElementById('ba-detail-'+id);
+  const chv=document.getElementById('ba-chevron-'+id);
+  const open=det.style.display==='none';
+  det.style.display=open?'block':'none';
+  chv.style.transform=open?'rotate(90deg)':'rotate(0deg)';
 }
 
 /* ═════════════════════════════════════ SETTINGS ═════════════════════════════════════ */
