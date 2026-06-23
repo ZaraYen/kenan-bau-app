@@ -4386,114 +4386,244 @@ async function approveAbs(id,status){
 }
 
 /* ═════════════════════════════════════ BETRIEBSANWEISUNGEN ═════════════════════════════════════ */
-const BETRIEBSANWEISUNGEN=[
-  {
-    id:'ba-01',
-    titel:'Sicherheitsunterweisung Tiefbau',
-    kategorie:'Allgemein',
-    icon:'⛑',
-    datum:'2025-01-01',
-    beschreibung:'Allgemeine Sicherheitsregeln für Tiefbauarbeiten, PSA-Pflichten und Verhaltensregeln auf der Baustelle.'
-  },
-  {
-    id:'ba-02',
-    titel:'Baggerarbeiten & Erdaushub',
-    kategorie:'Maschinen',
-    icon:'🚜',
-    datum:'2025-01-01',
-    beschreibung:'Betriebsanweisung für den sicheren Umgang mit Baggern, Schutzabstände, Sicherung des Aushubs und Leitungsschutz.'
-  },
-  {
-    id:'ba-03',
-    titel:'Arbeiten in Gräben und Gruben',
-    kategorie:'Erdbau',
-    icon:'🕳',
-    datum:'2025-01-01',
-    beschreibung:'Verbauvorschriften, Personenschutz bei Grabenarbeiten, Zugang/Ausgang, Entlüftung und Ausstieghilfen.'
-  },
-  {
-    id:'ba-04',
-    titel:'Straßenarbeiten & Verkehrssicherung',
-    kategorie:'Verkehr',
-    icon:'🚧',
-    datum:'2025-01-01',
-    beschreibung:'Absperrung und Beschilderung nach RSA, Schutzkleidung, Verhalten bei Annäherung von Fahrzeugen.'
-  },
-  {
-    id:'ba-05',
-    titel:'Umgang mit Gefahrstoffen',
-    kategorie:'Gefahrstoffe',
-    icon:'⚠',
-    datum:'2025-01-01',
-    beschreibung:'Handhabung von Kraftstoffen, Schmiermitteln, Bitumen und anderen Gefahrstoffen — Lagerung, Schutzmaßnahmen, Entsorgung.'
-  },
-  {
-    id:'ba-06',
-    titel:'Asphaltarbeiten',
-    kategorie:'Belag',
-    icon:'🛣',
-    datum:'2025-01-01',
-    beschreibung:'Sicherer Umgang mit heißem Asphalt, Einbaupflichten, Verbrennungsschutz, Gerätebedienung und Abkühlzeiten.'
-  },
-  {
-    id:'ba-07',
-    titel:'Lärm- und Vibrationsschutz',
-    kategorie:'Gesundheit',
-    icon:'🔇',
-    datum:'2025-01-01',
-    beschreibung:'Grenzwerte für Lärm und Hand-Arm-Vibration, Einsatz von Gehörschutz, Einsatzdauerplanung für vibrierende Geräte.'
-  },
-  {
-    id:'ba-08',
-    titel:'Erster Hilfe & Notfallmaßnahmen',
-    kategorie:'Notfall',
-    icon:'🚑',
-    datum:'2025-01-01',
-    beschreibung:'Notrufnummern, Standort des Verbandkastens, Erstversorgung bei Verletzungen, Meldepflichten bei Unfällen.'
-  }
+/* ══════════════════════════════ BETRIEBSANWEISUNGEN DATA ══════════════════════════════ */
+let _baTab='maschinen';
+const BA_FIRMA='Kenan Straßen & Tiefbau GbR';
+const BA_DATUM='Juni 2025';
+
+const BA_MASCHINEN_DATA=[
+  {id:'bm01',icon:'🚜',titel:'Bagger',
+   anwendung:'Erdbewegung, Aushub und Tiefbauarbeiten mit dem Bagger.',
+   gefahren:['Kippen/Umstürzen des Baggers durch instabilen Untergrund oder Überladung','Überfahren oder Quetschen von Personen im Schwenk- und Fahrbereich (toter Winkel)','Herabfallende Erd- und Gesteinsbrocken aus dem Löffel','Unterschreitung des Sicherheitsabstands zu Böschungskanten und Freileitungen','Selbstständiges Ingangsetzen (fehlgesicherte Maschine)','Lärm — Gefahr bleibender Gehörschäden'],
+   massnahmen:['Betriebsanleitung des Herstellers lesen, beachten und am Fahrerplatz aufbewahren','Vor Arbeitsaufnahme: Sichtprüfung auf ordnungsgemäßen Zustand (Bremsen, Hydraulik, Warnanlagen)','Standsicherheit jederzeit gewährleisten — Bagger nur auf tragfähigem Untergrund einsetzen','Sicherheitsabstand zu Böschungskanten: bis 12 t mind. 1,00 m; über 12 t mind. 2,00 m','Sicherheitsabstand zu elektrischen Freileitungen: bei unbekannter Spannung mind. 5,00 m','Vor Ingangsetzen: sicherstellen, dass keine Personen im Gefahrenbereich sind','Aufenthalt im Fahr- und Schwenkbereich strikt verboten','Bei eingeschränkter Sicht: Einweiser mit Warnkleidung (EN ISO 20471 Kl. 2) einsetzen','Bei Betriebsende: Löffel absenken, Fahrwerk blockieren, Unterlegkeile verwenden','Handschachtung bei Arbeiten in der Nähe erdverlegter Leitungen (Schutzabstand mind. 0,50 m)','Keine Personenbeförderung auf dem Bagger oder in der Schaufel'],
+   psa:['Sicherheitsschuhe S3 (Stahlkappe, Durchtrittschutz)','Gehörschutz SNR ≥ 25 dB','Warnweste EN ISO 20471 (Einweiser)','Schutzhelm EN 397','Schutzhandschuhe bei Reparatur'],
+   stoerungen:['Bagger ausschalten und gegen Wiedereinschalten sichern','Schaufel gegen Absinken sichern (Abstützböcke, Manschetten an Kolbenstangen)','Störungsbeseitigung nur nach Einweisung durch Sachkundigen','Bei nicht behebbaren Störungen: Vorgesetzten informieren, Maschine stilllegen'],
+   erstHilfe:['Bagger sofort außer Betrieb nehmen','Blutungen stillen: Druckverband anlegen','Verletzte Gliedmaßen ruhigstellen — nicht bewegen (Wirbelsäulenverletzung möglich)','Schockbekämpfung: beruhigen, warm halten, nicht allein lassen','Notruf 112 absetzen — Ersthelfer alarmieren'],
+   instandhaltung:'Regelmäßige Wartung durch qualifiziertes Personal. Mindestens jährlich Prüfung durch Sachkundigen. Prüfprotokoll aufbewahren.'},
+  {id:'bm02',icon:'🏗',titel:'Radlader / Hoflader',
+   anwendung:'Materialumschlag und Transport mit Radladern im nichtöffentlichen Baustellenbereich.',
+   gefahren:['Angefahren/Überfahren werden (toter Winkel, eingeschränkte Sicht)','Umstürzen/Umkippen durch Überladung oder zu hohe Schaufelstellung','Getroffen werden von herabfallendem Ladegut oder absinkender Schaufel','Absturz beim Ein-/Aussteigen','Lärm (Gehörschäden)','Verbrennungen an heißen Motorenteilen','Umweltgefährdung durch Öle und Betriebsstoffe'],
+   massnahmen:['Nur Beschäftigte ab 18 Jahre, geeignet, unterwiesen und schriftlich beauftragt','Betriebs- und Wartungsanleitung beachten und am Fahrerplatz aufbewahren','Fahrersicht prüfen — Kamera-/Monitorsysteme und Spiegel nutzen','Sicherheitsabstand zu festen Hindernissen: mind. 0,50 m; zu Böschungskanten: bis 12 t mind. 1,00 m; über 12 t mind. 2,00 m','Keine Fahrbewegungen bei Personen im Gefahrenbereich','Sicherheitsgurte immer anlegen','Schaufel beim Verfahren dicht über dem Boden halten (max. 30 cm)','Nicht von der Maschine abspringen; Aufstiegshilfen benutzen','Ladeschaufel nicht als Arbeitsbühne verwenden','In Pausen: Schaufel absetzen, Motor abstellen, gegen Rollen sichern'],
+   psa:['Sicherheitsschuhe S3','Gehörschutz SNR ≥ 25 dB','Warnweste EN ISO 20471','Schutzhelm','Sicherheitsgurt (integriert)'],
+   stoerungen:['Arbeitseinrichtungen absenken, Motor ausschalten, gegen Wiedereinschalten sichern','Aufsichtführenden informieren','Reparaturen nur durch Fachkundige oder Hersteller-Fachbetrieb'],
+   erstHilfe:['Blutungen stillen: Druckverband anlegen','Verletzte Gliedmaßen ruhigstellen','Schockbekämpfung: warm halten, beruhigen','Notruf 112 absetzen, Aufsichtführenden informieren'],
+   instandhaltung:'Arbeitstägliche Sicht- und Funktionsprüfung durch Maschinenführer. Mind. jährlich durch Sachkundigen prüfen (Prüfplaketten). Wartung durch Fachkundige oder Hersteller.'},
+  {id:'bm03',icon:'💨',titel:'Baustellenkompressor',
+   anwendung:'Betreiben und Instandhalten von Baustellenkompressoren zur Drucklufterzeugung.',
+   gefahren:['Unbeabsichtigtes Lösen von Schlauchverbindungen unter Druckluft (Peitschengefahr)','Brandgefahr durch Verpuffung und Stichflammen','Verbrennungsgefahr durch austretende heiße Betriebsstoffe','Erstickungsgefahr bei unbemerktem Verdichterbrand (CO-Vergiftung bei Atemluftentnahme)','Lärm durch nicht ordnungsgemäß geschlossene Hauben','Elektrische Gefährdung durch defekte Kabelverbindungen'],
+   massnahmen:['Betriebsanleitung des Herstellers strikt beachten','Betrieb niemals ohne Abdeckungen an Ventilatoren und Keilriemen','Ölstand vor Arbeitsbeginn kontrollieren; Verdichteröl regelmäßig wechseln','Vakuumanzeige am Luftansaugfilter kontrollieren','Verdichter niemals ohne Luftfilter betreiben — Überhitzungsgefahr!','Kompressor regelmäßig reinigen; ungehinderte Kühlluftansaugung sicherstellen','Ansaugung von Lösemitteldämpfen und Stäuben vermeiden','Standsicherheit auf ebenem, stabilem Untergrund prüfen','Schläuche und Verbindungen vor Betrieb auf Dichtheit kontrollieren','Nicht mit geöffneten Hauben betreiben; Kondensatablass überwachen'],
+   psa:['Gehörschutz SNR ≥ 25 dB','Schutzbrille bei Schlauchmontage','Schutzhandschuhe'],
+   stoerungen:['Maschine sofort abschalten — NOT-Aus-Taster betätigen','Druckluftleitungen vor Trennung drucklos machen','Vorgesetzten informieren; Maschine sichern'],
+   erstHilfe:['Blutungen stillen, Gliedmaßen ruhigstellen, Schockbekämpfung','Bei Verbrennungen: sofort mit lauwarmem Wasser kühlen (mind. 10 Minuten)','Notruf 112 absetzen, Ersthelfer alarmieren'],
+   instandhaltung:'Instandhaltung nur durch sachkundige, beauftragte Personen. Ausschließlich Original-Ersatzteile. Schutzeinrichtungen nach Instandsetzung vollständig wieder anbringen.'},
+  {id:'bm04',icon:'⚙',titel:'Trennschleifmaschine / Flex / Winkelschleifer',
+   anwendung:'Einsatz von handgeführten Trennschleifmaschinen auf der Baustelle.',
+   gefahren:['Scheibenberstung — wegfliegende Teile der Trennscheibe','Rückschlag der rotierenden Scheibe beim Verkanten','Verletzung durch nachlaufende Scheiben beim Ablegen','Funkenflug — Brand- und Augengefahr','Lärm (Gehörschäden)','Gefährliche Körperströme durch elektrische Defekte','Staubentwicklung (Quarzstaub, Metallfeinstaub)'],
+   massnahmen:['Nur CE-gekennzeichnete Maschinen und Trennscheiben verwenden','Drehzahlangabe der Scheibe muss mind. der Maschinenleerlaufdrehzahl entsprechen','Passende Spannflansche mit Spezialschlüssel verwenden; Klangprobe vor Aufspannen','Schutzhaube niemals entfernen oder umklappen','Werkstücke sicher fixieren (Spannvorrichtung)','Maschine stets mit beiden Händen führen; niemals verkanten','Für Schleifarbeiten Schruppscheiben — keine Trennscheiben!','Nicht von Anlegeleitern aus arbeiten','Maschine erst nach vollständigem Stillstand ablegen','Brandschutzmaßnahmen bei Funkenflug treffen'],
+   psa:['Schutzbrille EN 166 (Splitterschutz)','Gehörschutz SNR ≥ 25 dB','Lederschürze oder schwer entflammbarer Schutzanzug','Atemschutzmaske FFP2 bei stauberzeugenden Arbeiten','Sicherheitsschuhe S3','Schutzhandschuhe (nicht bei laufender Scheibe)'],
+   stoerungen:['Trennschleifmaschine sofort stillsetzen und sichern','Beschädigte Scheiben sofort austauschen','Aufsichtführenden informieren'],
+   erstHilfe:['Selbstschutz beachten — erst helfen wenn Maschine freigeschaltet','Blutungen stillen: Druckverband anlegen','Verletzte Gliedmaßen ruhigstellen; Schockbekämpfung','Bei Herz-/Atemstillstand: Wiederbelebung + AED','Notruf 112 absetzen'],
+   instandhaltung:'Sicht- und Funktionsprüfung vor jedem Einsatz. Wiederholungsprüfung elektrischer Betriebsmittel auf Baustellen alle 3 Monate durch Elektrofachkraft.'},
+  {id:'bm05',icon:'🔨',titel:'Pressluftstampfer / Rüttelplatte / Vibrationsstampfer',
+   anwendung:'Stampfen und Verdichten von Boden, Schüttgut und Verbundpflaster.',
+   gefahren:['Rückschlag der Werkzeuge (Pressluft-Rückstoß)','Quetschgefahr an Händen und Füßen','Lärm (Gehörschäden bei >85 dB(A))','Hand-Arm-Vibration (Weißfingerkrankheit bei Langzeitexposition)','Staubentwicklung bei trockenem Untergrund','Unbeabsichtigtes Lösen von Druckluft-Schlauchverbindungen'],
+   massnahmen:['Betriebsanweisung und Bedienungsanleitung des Herstellers beachten','Pressluftgeräte nur an eindeutig gekennzeichnete Druckluftleitungen anschließen','Schlauchverbindungen (Sicherheitskupplungen) gegen unbeabsichtigtes Lösen sichern','Gehörschutz tragen — Tragepflicht!','Schutzbrille tragen','Einsatzdauer begrenzen (Tagesgrenzwert HAV: a(8) = 2,5 m/s²)','Antivibrationshandschuhe bei umfangreichen Arbeiten verwenden','Vor dem Trennen von Druckluftleitungen: Leitung drucklos machen','Sicheren Standplatz einnehmen — ausreichend Platz für Rückschlag einplanen'],
+   psa:['Gehörschutz SNR ≥ 25 dB (Pflicht)','Schutzbrille EN 166','Sicherheitsschuhe S3 (Stahlkappe, Durchtrittschutz)','Antivibrationshandschuhe EN ISO 10819','Staubschutzmaske FFP2 bei trockenem Untergrund'],
+   stoerungen:['Maschine sofort abstellen','Druckluft absperren und Leitungen drucklos machen','Vorgesetzten informieren; Reparaturen nur durch befähigte Personen'],
+   erstHilfe:['Blutungen stillen, Gliedmaßen ruhigstellen, Schockbekämpfung','Bei Quetschungen: Kühlung mit Kältebeutel (nie direkt auf Haut)','Unfall melden; Notruf 112'],
+   instandhaltung:'Funktion und Vollständigkeit der Sicherheits- und Schutzeinrichtungen regelmäßig prüfen. Reparaturen ausschließlich durch befähigte Personen.'},
+  {id:'bm06',icon:'🛤',titel:'Erd- und Straßenbaumaschinen (Grader, Walze, Fertiger)',
+   anwendung:'Einsatz von Erd- und Straßenbaumaschinen im nichtöffentlichen Baustellenbereich.',
+   gefahren:['Überfahren/Angefahren werden (toter Winkel, eingeschränkte Sicht)','Umstürzen/Umkippen der Maschine','Unterschreitung Sicherheitsabstand zu Freileitungen (Stromschlag)','Öle und Betriebsstoffe — Umweltkontamination'],
+   massnahmen:['Nur Beschäftigte ab 18 Jahre, geeignet, unterwiesen und schriftlich beauftragt','Betriebs- und Wartungsanleitung am Fahrerplatz aufbewahren und beachten','Fahrersicht vor Arbeitsaufnahme und nach Standortwechsel prüfen','Kein Aufenthalt im Gefahrenbereich; keine Bewegungen bei Personen im Gefahrenbereich','Sicherheitsabstand zu Freileitungen: bei unbekannter Spannung mind. 5,00 m','Sicherheitsgurte anlegen (bei Maschinen mit ROPS/Überrollschutz)','Einweiser müssen Warnkleidung tragen; ständiger Blickkontakt','Keine Personenbeförderung in Arbeitseinrichtungen oder auf Tritten','In Pausen: Einrichtungen absetzen, Motor abstellen, gegen Wegrollen sichern'],
+   psa:['Sicherheitsschuhe S3','Gehörschutz SNR ≥ 25 dB','Warnweste EN ISO 20471','Schutzhelm EN 397','Sicherheitsgurt (integriert)'],
+   stoerungen:['Maschine stillsetzen, gegen Wiedereinschalten sichern, Aufsichtführenden informieren','Bei Kontakt mit Freileitung: Führerhaus NICHT verlassen — Hilfe herbeirufen (Stehwellengefahr)','Metallteile der Maschine bei Leitungskontakt nicht berühren'],
+   erstHilfe:['Selbstschutz beachten — erst helfen wenn Verletzter sicher außerhalb Stromkreis','Blutungen stillen, Gliedmaßen ruhigstellen, Schockbekämpfung','Bei Herz-/Atemstillstand: Wiederbelebung + AED','Notruf 112 absetzen'],
+   instandhaltung:'Arbeitstägliche Sicht- und Funktionsprüfung durch Maschinenführer. Mind. jährlich durch Sachkundigen prüfen. Prüfprotokoll aufbewahren.'},
+  {id:'bm07',icon:'🚗',titel:'Kraftfahrzeuge (LKW, Transporter, PKW)',
+   anwendung:'Führen von Kraftfahrzeugen im Rahmen betrieblicher Aufgaben — öffentlich und auf Baustellen.',
+   gefahren:['Kollision mit anderen Verkehrsteilnehmern','Verrutschen von Nutzlasten beim Transport','Verletzungen beim Be- und Entladen','Umweltgefährdung durch Kraft- und Betriebsstoffe','Übermüdung, Ablenkung, Alkohol'],
+   massnahmen:['Fahrzeuge nur bei gültiger Fahrerlaubnis für die jeweilige Fahrzeugklasse führen','Fahrzeug muss betriebssicher sein (HU, Fahrtüchtigkeit)','Ausstattung prüfen: Verbandkasten, Warndreieck, Warnweste','Fahrzeugschein, Führerschein und Betriebsanleitung mitführen','Defensive Fahrweise; Geschwindigkeit der Situation anpassen','Alkohol und berauschende Mittel verboten','Bei Medikamenteneinnahme: Arzt bezüglich Fahrtüchtigkeit befragen','Ladung sicher verzurren (StVO §22); Überladung vermeiden','Handy-Verbot am Steuer'],
+   psa:['Warnweste bei Panne oder Unfall','Sicherheitsgurt'],
+   stoerungen:['Festgestellte Mängel sofort dem Vorgesetzten melden — Fahrzeug stilllegen','Bei Panne im Verkehr: Warnblinkanlage, Warndreieck aufstellen, Warnweste anlegen','Führerscheinverlust oder Fahrtüchtigkeitseinschränkung sofort melden'],
+   erstHilfe:['Unfallstelle absichern (Warndreieck, Warnblinker)','Verletzten versorgen: Blutungen stillen, ruhigstellen, Schockbekämpfung','Notruf 112 absetzen, Polizei (110) informieren','Unfall polizeilich aufnehmen lassen'],
+   instandhaltung:'Reparaturen nur durch beauftragte Personen oder Fachwerkstätten. Regelmäßige Fahrzeugpflege nach Herstellerangaben.'},
+  {id:'bm08',icon:'🌿',titel:'Freischneidegeräte',
+   anwendung:'Arbeiten mit motorisierten Freischneidegeräten auf Baustellen und Grünanlagen.',
+   gefahren:['Wegfliegende Fremdkörper (Steine, Äste) — Verletzungsgefahr für Umstehende','Hand-Arm-Vibration (Weißfingerkrankheit)','Rückschlag der Maschine bei Hindernis','Verletzung durch scharfe Schneidwerkzeuge','Abgase des Verbrennungsmotors (CO, HC)','Lärm'],
+   massnahmen:['Nur von unterwiesenen Personen ab 18 Jahren bedienen lassen','Betriebsanleitung des Herstellers beachten','Sicherheitsabstand zu anderen Personen: mind. 15 m','Schutzeinrichtung so einrichten, dass sie die Werkzeugkreisbahn nach unten übergreift','Schneidwerkzeug beim Transport gegen Berührung sichern','Vor Arbeitsbeginn: Sicherheitseinrichtungen und Werkzeug prüfen','Haltegriffe und Tragegurt auf Körpergröße einstellen','Sicherheitseinfüllstutzen beim Betanken verwenden; nicht rauchen','Einsatzdauer begrenzen (HAV-Grenzwert)'],
+   psa:['Gesichtsschutz/Schutzvisier','Gehörschutz SNR ≥ 25 dB','Schnittschutzhandschuhe','Schnittschutzgamaschen','Sicherheitsschuhe S3','Schutzhelm'],
+   stoerungen:['Bei Gefahr sofort Motor stillsetzen','Wartung nur bei stillgesetztem Motor und blockiertem Werkzeugantrieb','Stumpfe oder beschädigte Werkzeuge sofort austauschen'],
+   erstHilfe:['Sofortmaßnahmen am Unfallort durchführen','Blutungen stillen, Notruf 112 absetzen','BG BAU und Betriebsleitung informieren'],
+   instandhaltung:'Regelmäßig Sicherheitseinrichtungen prüfen. Reparaturen nur durch Sachkundige. Betriebsanleitung bei Wartung beachten.'},
+  {id:'bm09',icon:'✂',titel:'Fugenschneider (benzin- und elektrobetrieben)',
+   anwendung:'Schnittarbeiten in Betonplatten, Asphalt und Verbundpflaster.',
+   gefahren:['Getroffen werden von der Maschine oder Trennscheibe beim Rückschlag','Scheibenberstung — wegfliegende Teile','Lärm','Gefährliche Körperströme durch elektrische Defekte','Funkenflug — Brandgefahr','Quarzstaub (krebsverdächtig)','Abgase und Betriebsstoffe (Benzinbetrieb)','Verbrennungen an heißen Teilen'],
+   massnahmen:['Betriebsanweisung des Herstellers lesen und befolgen','Nur durch unterwiesenes Personal','Sichtprüfung auf erkennbare Mängel vor Arbeitsbeginn','Schutzvorrichtungen dürfen nicht entfernt werden','Nicht in laufende Scheibe greifen','Nur vorgeschriebene, unbeschädigte Scheiben verwenden','Material-passende Scheibe wählen (Metall oder Stein)','Nasse Arbeitsweise (Wasserkühlung) zur Staubreduzierung','FI-Schalter für elektrische Geräte verwenden','Verbot des Umgangs mit offenem Feuer'],
+   psa:['Schutzbrille mit Seitenschutz EN 166','Schutzhandschuhe','Gehörschutz SNR ≥ 25 dB (Pflicht)','Staubschutzmaske FFP2','Sicherheitsschuhe S3'],
+   stoerungen:['Maschine sofort ausschalten','Störungen nur durch Fachwerkstatt — keine Selbstreparatur','Vorgesetzten informieren'],
+   erstHilfe:['Blutungen stillen, Gliedmaßen ruhigstellen, Schockbekämpfung','Aufsichtführenden informieren; Notruf 112 absetzen'],
+   instandhaltung:'Arbeitstägliche Sicht- und Funktionsprüfung. Mind. jährliche Prüfung durch befähigte Person.'},
+  {id:'bm10',icon:'🪨',titel:'Stemmhammer (Presslufthammer / Elektrohammer)',
+   anwendung:'Stemmarbeiten bei Abbruch, Betonsanierung und Straßenaufbruch.',
+   gefahren:['Weggeschleuderte Steinteile und Betonbrocken','Rückschlag der Werkzeuge','Mineralischer Staub — Quarzstaub (krebsverdächtig)','Verletzung durch scharfe Meißel','Quetschgefahr an Händen und Füßen','Hand-Arm-Vibration (Weißfingerkrankheit)','Lärm'],
+   massnahmen:['Betriebsanweisungen und Bedienungsanleitung des Herstellers beachten','Gehörschutz tragen — Tragepflicht!','Bei abspringenden Teilen: Vollschutzbrille tragen','Bei Staub: Atemschutz Partikelfilter P2 oder P3','Antivibrationshandschuhe bei umfangreichen Arbeiten','Einsatzdauer begrenzen (Auslösewert HAV: a(8) = 2,5 m/s²)','Verdeckte Leitungen mit Leitungssuchgerät orten','Stumpfe Meißel sofort auswechseln','Anschlussleitungen gegen mechanische Beschädigungen schützen','Vor Trennen von Druckluftleitungen: drucklos machen','Keine Stemmarbeiten von Leitern oder Hubarbeitsbühnen'],
+   psa:['Gehörschutz SNR ≥ 25 dB (Pflicht)','Vollschutzbrille EN 166','Staubschutzmaske FFP2 / P2 oder P3','Antivibrationshandschuhe EN ISO 10819','Sicherheitsschuhe S3','Schutzhelm (bei Abbrucharbeiten)'],
+   stoerungen:['Maschinen sofort abstellen','Defekte Meißel sofort austauschen','Vorgesetzten informieren'],
+   erstHilfe:['Blutungen stillen, Gliedmaßen ruhigstellen, Schockbekämpfung','Unfall melden; Notruf 112 absetzen'],
+   instandhaltung:'Funktion und Vollständigkeit der Sicherheitseinrichtungen regelmäßig prüfen. Handwerkzeuge auf Verschleiß prüfen. Reparaturen durch befähigte Personen.'},
+  {id:'bm11',icon:'🪜',titel:'Leitern (Anlegeleitern und Stehleitern)',
+   anwendung:'Arbeiten auf Leitern als Zugang zu erhöhten Arbeitsstellen auf der Baustelle.',
+   gefahren:['Absturz von der Leiter','Umstürzen, Abrutschen oder Umkanten der Leiter','Leiterbruch durch Überlastung oder Defekt','Elektrische Gefährdung in der Nähe von Stromleitungen'],
+   massnahmen:['Leiter vor jeder Benutzung auf betriebssicheren Zustand prüfen','Defekte Leitern sofort sperren und kennzeichnen','Leitern nur bestimmungsgemäß verwenden (Stehleiter ≠ Anlegeleiter)','Leitern mit aufgenagelten Sprossen sind unzulässig','Anstellwinkel beachten: 65°–75° (ca. 1:4 — Ausladung zu Länge)','Gegen Umfallen und Wegrutschen anbinden oder in Leitersicherungshaken einhängen','Stehleitern mit Spreizsicherungen gegen Auseinandergleiten sichern','Sicherheitsabstand zu elektrischen Leitungen: mind. 5 m bei unbekannter Spannung','Maximal eine Person gleichzeitig auf der Leiter','Leiter mind. 1 m über die Ausstiegsstelle hinausragen lassen'],
+   psa:['Sicherheitsschuhe mit gutem Halt','Schutzhandschuhe','Bei Absturzgefahr: Sicherheitsgurt EN 361 + Verbindungsmittel'],
+   stoerungen:['Leiter überprüfen, Mängel sofort beheben oder Leiter sperren','Nichtbenutzung durch Entfernen oder Absperrung sicherstellen'],
+   erstHilfe:['Sofortmaßnahmen am Unfallort (Absturz: Wirbelsäule schonen!)','Verletzten bei Verdacht auf Wirbelsäulenverletzung nicht bewegen','Notruf 112 absetzen; BG BAU und Betriebsleitung informieren'],
+   instandhaltung:'Sprossen müssen fest mit Holmen verbunden sein. Leitern trocken aufbewahren. Holzleitern nicht mit deckenden Anstrichen versehen (Risse werden verdeckt).'},
+  {id:'bm12',icon:'👂',titel:'Gehörschutz — Trageanweisung',
+   anwendung:'Benutzung von Gehörschutzmitteln in Lärmbereichen ab 85 dB(A) — Tragepflicht!',
+   gefahren:['Ohne Gehörschutz in Lärmbereichen: bleibende Schwerhörigkeit (irreversibel!)','Lärm ab 85 dB(A) verursacht dauerhafte Gehörschäden','Einzelne Lärmspitzen können sofortige Hörschäden verursachen','Beim Tragen: eingeschränktes Hören von Warnsignalen möglich'],
+   massnahmen:['Gehörschutz MUSS im gekennzeichneten Lärmbereich ab 85 dB(A) getragen werden','Über die gesamte Arbeitsschicht lückenlos tragen','Vor Benutzung auf augenscheinliche Mängel prüfen','Korrekt einsetzen/aufsetzen gemäß Herstelleranleitung','Keine Manipulationen am Gehörschutz vornehmen','Gehörschutz mit ausreichender Schalldämmung (SNR ≥ 25 dB)','Sprachverständlichkeit und Wahrnehmung von Warnsignalen prüfen','Stöpsel mit Verbindungsschnur nicht bei Maschinen tragen (Einzugsgefahr)'],
+   psa:['Kapselgehörschutz EN 352-1 oder','Gehörschutzstöpsel EN 352-2 (SNR ≥ 25 dB)'],
+   stoerungen:['Defekte Gehörschützer unverzüglich austauschen','Kein Betrieb im Lärmbereich ohne funktionsfähigen Gehörschutz'],
+   erstHilfe:['Nach Explosion oder Knallen mit Hörverlust oder Ohrgeräuschen: unverzüglich Arzt aufsuchen (Hörsturz-Notfall!)','Keine Wattestöpsel in die Ohren stecken'],
+   instandhaltung:'In geeigneten Behältern aufbewahren. Nach Herstellerangaben reinigen. Bei spröden Dichtungskissen: sofort austauschen.'},
 ];
 
-const BA_KATEGORIE_FARBEN={
-  'Allgemein':'var(--brand)','Maschinen':'var(--amber)','Erdbau':'var(--text2)',
-  'Verkehr':'var(--red)','Gefahrstoffe':'var(--red)','Belag':'var(--text2)',
-  'Gesundheit':'var(--green)','Notfall':'var(--red)'
-};
+const BA_TAETIGKEITEN_DATA=[
+  {id:'bt01',icon:'🕳',titel:'Verbauen von Gruben und Gräben',
+   anwendung:'Einbau von Grabenverbaugeräten (Verbauplatten, Spindeln) zum Schutz vor Erdeinbrüchen.',
+   gefahren:['Einsturz der Grabenwände — Verschüttungsgefahr (LEBENSGEFAHR!)','Getroffen werden von Verbauteilen bei instabilen Zwischenbauzuständen','Umkippen und Herabfallen einzelner Verbauteile','Absturz in die Baugrube','Beschädigung erdverlegter Leitungen'],
+   massnahmen:['Schriftliche Verbauanweisung nach DGUV Vorschrift 38 erstellen und vor Ort bereithalten','Grabenbreite und Verbauabmessungen nach DIN 4124 wählen','Betriebs- und Wartungsanleitung des Herstellers bei Montage beachten','Montage nur durch fachkundige Mitarbeiter','Standsicherheit der Verbauwände regelmäßig prüfen — insbesondere nach Regen oder Erschütterungen','Keine Personen im Graben bei laufenden Baggerarbeiten','Auf- und Ausstieg über Leitern sicherstellen (max. 5 m Abstand)','Keine Lasten an der Grabenoberkante lagern (Mindestabstand 0,60 m)','Erdverlegte Leitungen vor Beginn orten lassen (Handschachtung im Schutzbereich)'],
+   psa:['Schutzhelm EN 397','Sicherheitsschuhe S3','Schutzhandschuhe','Warnweste EN ISO 20471'],
+   stoerungen:['Bei Anzeichen von Grabeninstabilität: Graben sofort verlassen!','Bei defekten Transportösen: andere Verbauplatte benutzen, Mangel beheben lassen','Aufsichtführenden sofort informieren'],
+   erstHilfe:['Blutungen stillen, Gliedmaßen ruhigstellen, Schockbekämpfung','Bei Verschüttung: Notruf 112, Graben NICHT betreten (Nachrutschgefahr!), Feuerwehr abwarten','Aufsichtführenden informieren'],
+   instandhaltung:'Sicht- und Funktionsprüfung vor jedem Einsatz. Mind. jährlich durch Sachkundigen prüfen. Wartungsarbeiten durch Fachkundige.'},
+  {id:'bt02',icon:'🔩',titel:'Montage von Verbauelementen',
+   anwendung:'Zusammenbau von Verbauplatten und Spindeln zu Verbaueinheiten mit Hebezeug auf der Baustelle.',
+   gefahren:['Umkippen einzelner Bauteile durch labile Zustände beim Zusammensetzen','Getroffen werden von herabfallenden Verbauteilen','Quetschungen beim Zusammenbau','Fehlmontage durch Nichtbeachten der Herstelleranleitung'],
+   massnahmen:['Betriebsanleitung des Herstellers muss auf Baustelle vorliegen','Aufbauanweisungen konsequent beachten — nicht improvisieren','Montage nur durch damit betraute Beschäftigte','Sichtprüfung: defekte Teile nicht einbauen','Hebezeug auf ausreichende Tragfähigkeit prüfen','Gefahrenbereich während Hebevorgängen absperren'],
+   psa:['Schutzhelm EN 397','Sicherheitsschuhe S3','Schutzhandschuhe','Warnweste EN ISO 20471'],
+   stoerungen:['Bei defekten Transportösen: andere Platte benutzen, Mangel beheben lassen','Aufsichtführenden informieren'],
+   erstHilfe:['Notruf 112 absetzen','Blutungen stillen, Gliedmaßen ruhigstellen','Unfall melden'],
+   instandhaltung:'Gebrauchsfähigkeit durch regelmäßige Prüfung durch befähigte Person sicherstellen.'},
+  {id:'bt03',icon:'🚪',titel:'Arbeiten in Behältern und engen Räumen',
+   anwendung:'Arbeiten in Schächten, Kanälen, Rohrgräben und sonstigen engen Räumen.',
+   gefahren:['Sauerstoffmangel — LEBENSGEFAHR! (O₂ < 18 % Vol.)','Gesundheitsgefährliche Gase und Dämpfe (H₂S, CO, Methan)','Explosionsgefährdung durch Gasansammlungen','Absturzgefahr','Verletzungsgefahr durch ungesicherte Antriebe','Elektrische Gefährdung durch unter Spannung stehende Einrichtungen'],
+   massnahmen:['Arbeiten nur mit besonderer schriftlicher Freigabe (Arbeitserlaubnisschein)','Erst beginnen, wenn Aufsichtsführender Einhaltung aller Maßnahmen festgestellt hat','Behälter entleeren und von gefährlichen Stoffen befreien','Zu-/Abgänge für gefährliche Stoffe unterbrechen (Blindflansch, Schieber)','Gaskonzentration und O₂-Gehalt messen (Gasmessgerät: O₂ mind. 19 % Vol.)','Lüftung sicherstellen; Wirksamkeit überwachen','Bei Unwirksamwerden der Lüftung: sofort Arbeiten einstellen','Ständiger Sicherungsposten außerhalb — Kommunikation sicherstellen','Keine Druckgasbehälter (außer Atemschutz) mitnehmen','Gefahrbringende Maschinenbewegungen sicher verhindern (Schloss, Schild)'],
+   psa:['Schutzhelm EN 397','Sicherheitsschuhe S3','Schutzhandschuhe','Bei O₂-Mangel: umluftunabhängiges Atemschutzgerät','Rettungsgeschirr mit Lifeline','4-Gas-Messgerät'],
+   stoerungen:['Zuständigen Vorgesetzten verständigen','Bei Ausfall Beleuchtung: Raum sofort verlassen','Bei Gefahr: Arbeit einstellen, andere warnen, Maschinen abschalten, absichern'],
+   erstHilfe:['KEIN Nachsteigen ohne Atemschutz — O₂-Gehalt prüfen!','Rettung nur mit Rettungsgeschirr und Lifeline von außen','Notruf 112 — Feuerwehr mit umluftunabhängigem Atemschutz','Blutungen stillen, ruhigstellen, beruhigen','Vorgesetzten informieren; Erste-Hilfe-Leistung ins Verbandbuch eintragen'],
+   instandhaltung:'Aufsichtführender hat Einhaltung aller Schutzmaßnahmen zu überwachen und zu dokumentieren.'},
+  {id:'bt04',icon:'☀',titel:'Arbeiten im Freien bei Hitze und Sonnenstrahlung',
+   anwendung:'Schutzmaßnahmen bei Außenarbeiten bei hohen Temperaturen ab ca. 25°C.',
+   gefahren:['Hitzeerschöpfung (Schwindel, Übelkeit, kaltschweißig)','Sonnenstich (hochroter Kopf, Nackensteifigkeit, Bewusstseinstrübung)','Hitzschlag (keine Schweißbildung, Temp. >39,5°C) — LEBENSGEFAHR!','Sonnenbrand und erhöhtes Hautkrebsrisiko','Unfallgefahr durch Konzentrationsmangel','Ozonbelastung (Augenbrennen, Atemprobleme)'],
+   massnahmen:['Körperlich anstrengende Arbeiten nicht zwischen 10:00 und 15:00 Uhr','Arbeitszeiten in Morgen- und Abendstunden verlegen','Wenn möglich im Schatten arbeiten','Helle, weite, UV-undurchlässige, luft- und feuchtigkeitsdurchlässige Kleidung tragen','Helle Kopfbedeckung mit Nackenschutz oder breiter Krempe','Sonnenbrille mit UV-Schutz und Seitenschutz','Sonnenschutz (LSF ≥ 30, wasserfest) auftragen und regelmäßig nachcremen','Häufig Kurzpausen im Schatten; mind. 0,5 l/h trinken — BEVOR Durst einsetzt','Alkoholfreie, leicht gekühlte Getränke: Wasser, Fruchtsaftschorle, Früchtetee','Leichte Mahlzeiten einnehmen'],
+   psa:['Helle Kopfbedeckung mit Nackenschutz','Sonnenbrille EN ISO 12312-1','Helle Arbeitskleidung (UPF ≥ 30)','Sonnenschutzmittel LSF ≥ 30'],
+   stoerungen:['Bei Hitzesymptomen: Arbeit sofort unterbrechen','Betroffene an kühlen, schattigen Ort bringen','Vorgesetzten informieren'],
+   erstHilfe:['🔴 HITZSCHLAG (Notfall!): kein Schwitzen, heiße Haut, Temp. >39,5°C, Verwirrung → SOFORT Notruf 112! Körper kühlen (Kühlumschläge, Kühlduschen), stabile Seitenlage bei Bewusstlosigkeit','🟡 SONNENSTICH: Kopf ERHÖHT lagern (wichtig!), nasse kühle Tücher auf Kopf/Nacken, Flüssigkeit geben (wenn bewusst)','🟡 HITZEERSCHÖPFUNG: Hinlegen (Kopf tief), kühlen, salzhaltige Flüssigkeit in kleinen Schlucken','Bei Bewusstlosigkeit: stabile Seitenlage, Atmung prüfen, ggf. Wiederbelebung'],
+   instandhaltung:'Maßnahmen dokumentieren. Erste-Hilfe-Leistungen ins Verbandbuch eintragen.'},
+  {id:'bt05',icon:'🏚',titel:'Abbrucharbeiten auf Baustellen',
+   anwendung:'Rückbau und Abbruch von Bauwerken und Bauteilen auf Baustellen.',
+   gefahren:['Einsturzgefahr des Bauwerkes — LEBENSGEFAHR!','Unkontrolliertes Herabfallen von Bauteilen','Absturzgefahr','Staubentwicklung (Quarzstaub, ggf. Asbest)','Lärm','Kontakt mit Gefahrstoffen (Asbest, Blei, PCB)'],
+   massnahmen:['Schriftliche Abbruchanweisung nach DGUV Vorschrift 38 erstellen und bereithalten','Vor Beginn: Erkundung (Statik, Gefahrstoffe, Leitungen)','Auf Asbest prüfen lassen — ggf. Fachbetrieb beauftragen','Gefahrenbereiche absperren oder durch Warnposten sichern','Absturzsicherungen verwenden (Gerüst, Seitenschutz, Anseilschutz)','Bauteile NICHT durch Unterhöhlen oder Schlitzen zum Einsturz bringen','Decken vor Befahren abstützen; Tragfähigkeit sicherstellen','Arbeitsmedizinische Vorsorge veranlassen (Atemschutz, Lärm)'],
+   psa:['Schutzhelm EN 397 (Pflicht!)','Sicherheitsschuhe S3 (halbhoch)','Schutzbrille','Staubschutzmaske FFP2 oder FFP3','Gehörschutz SNR ≥ 25 dB','Schutzhandschuhe','Bei Asbest: PSA nach TRGS 519'],
+   stoerungen:['Bei Gefahr: Arbeiten sofort einstellen!','Bereich räumen und absichern','Störungen sofort an Vorgesetzten melden'],
+   erstHilfe:['Selbstschutz beachten — Einsturzgefahr!','Blutungen stillen, Gliedmaßen ruhigstellen, Schockbekämpfung','Bei Herz-/Atemstillstand: Wiederbelebung + AED','Notruf 112; Aufsichtführenden und BG BAU informieren'],
+   instandhaltung:'Regelmäßig Sicherheitseinrichtungen prüfen. Wartungen durch befähigtes Personal.'},
+  {id:'bt06',icon:'⛓',titel:'Anschlagen von Lasten',
+   anwendung:'Anschlagen von Lasten mit Seilen, Ketten und Hebebändern für Kran- und Hebevorgänge.',
+   gefahren:['Getroffen werden von herabfallenden oder schwingenden Lasten','Verletzungen durch beschädigte oder falsch gewählte Anschlagmittel','Gefährliche Körperströme beim Unterschreiten des Sicherheitsabstands zu Freileitungen','Quetschungen zwischen Last und festen Hindernissen'],
+   massnahmen:['Genormte, CE-gekennzeichnete Anschlagmittel verwenden','Anschlagmittel nicht über die zulässige Tragfähigkeit (WLL) belasten','Seile, Ketten und Hebebänder nach Gewicht und Größe der Last auswählen','Formschlüssiges Anschlagen dem kraftschlüssigen vorziehen','Möglichst vorgegebene Anschlagpunkte verwenden','Bei mehrsträngigen Anschlagmitteln: maximalen Neigungswinkel 60° beachten','Lange stabförmige Lasten immer mit Traversen anschlagen','Kantenschutz bei Seilen über scharfe Kanten','Pendeln der Last verhindern; Schwerpunkt beachten','Kein Aufenthalt unter schwebenden Lasten — Durchfahrverbot!','Verständigung Kranführer/Anschläger: Handzeichen DIN 33409 oder Sprechfunk','Keine Personenbeförderung mit der Last'],
+   psa:['Schutzhelm EN 397','Sicherheitsschuhe S3 (Stahlkappe)','Schnittfeste Schutzhandschuhe','Warnweste EN ISO 20471'],
+   stoerungen:['Bei sichtbaren Beschädigungen: Anschlagmittel sofort sperren und kennzeichnen','Aufsichtführenden informieren; keine provisorischen Reparaturen'],
+   erstHilfe:['Blutungen stillen: Druckverband anlegen','Verletzte Gliedmaßen ruhigstellen; Schockbekämpfung','Notruf 112 absetzen, Aufsichtführenden informieren'],
+   instandhaltung:'Arbeitstägliche Sichtprüfung durch Anschläger. Mind. jährlich durch Sachkundigen prüfen. Reparaturen nur durch Hersteller oder autorisierte Fachfirmen.'},
+];
 
-function renderBetriebsanweisungen(){
-  const pg=document.getElementById('p-betriebsanweisungen');
-  const kategorien=[...new Set(BETRIEBSANWEISUNGEN.map(b=>b.kategorie))];
-  pg.innerHTML=`
-    <div class="ph"><h2>📄 Betriebsanweisungen</h2><p>Alle gültigen Betriebsanweisungen — jederzeit abrufbar</p></div>
-    <div class="alert alert-i" style="margin-bottom:16px">ℹ Diese Anweisungen sind verbindlich. Bei Fragen wende dich an deinen Vorgesetzten.</div>
-    ${kategorien.map(kat=>`
-      <div class="sec-lbl" style="margin-top:14px">${kat}</div>
-      ${BETRIEBSANWEISUNGEN.filter(b=>b.kategorie===kat).map(b=>`
-        <div class="card" style="cursor:pointer;margin-bottom:8px" onclick="toggleBA('${b.id}')">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="font-size:26px;line-height:1;flex-shrink:0">${b.icon}</div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:13px;font-weight:600;color:var(--text)">${b.titel}</div>
-              <div style="font-size:11px;color:var(--text2);margin-top:2px">Stand: ${b.datum} &nbsp;·&nbsp;
-                <span style="color:${BA_KATEGORIE_FARBEN[b.kategorie]||'var(--text2)'}">${b.kategorie}</span>
-              </div>
-            </div>
-            <div id="ba-chevron-${b.id}" style="color:var(--text3);font-size:16px;transition:transform .2s">▸</div>
-          </div>
-          <div id="ba-detail-${b.id}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-            <p style="font-size:13px;color:var(--text2);line-height:1.6">${b.beschreibung}</p>
-          </div>
-        </div>
-      `).join('')}
-    `).join('')}
-  `;
+const BA_GEFAHRSTOFFE_DATA=[
+  {id:'bg01',icon:'⛽',titel:'Dieselkraftstoff — Befüllen von Maschinen und Lagerbehältern',
+   anwendung:'Umgang mit Dieselkraftstoff beim Betanken von Baumaschinen und Befüllen von Lagerbehältern.',
+   ghs:['GHS02','GHS07','GHS08','GHS09'],signalwort:'GEFAHR',
+   gefahren:['Krebserzeugende Wirkung wird vermutet (TRGS 906) — Tätigkeiten mit krebserzeugenden Stoffen!','Kann Atemwege und Augen reizen','Schwindel, Kopfschmerzen, Übelkeit, Konzentrationsstörungen bei Exposition','Kann Lungenschaden verursachen (bei Verschlucken und Aspiration)','Brennbar; erhöhte Entzündungsgefahr bei durchtränktem Material (Putzlappen)','Eindringen in Boden, Gewässer und Kanalisation vermeiden'],
+   massnahmen:['Vor Befüllung: Füllstand des Lagerbehälters ermitteln (nie überfüllen)','Belüftungseinrichtung muss geöffnet und betriebsbereit sein','Lagerbehälter und Rückhalteeinrichtung auf Intaktheit prüfen','Behälter bis 1000 l: selbsttätig schließendes Zapfventil verwenden','Behälter über 1000 l: Festanschluss mit Grenzwertgeber','Von Zündquellen fernhalten! Nicht rauchen! Keine offenen Flammen!','Brandklasse-B-Feuerlöscher bereithalten','Verspritzen vermeiden; Berührung mit Augen, Haut und Kleidung meiden','Verunreinigte Kleidung wechseln; Putzlappen in verschließbaren nichtbrennbaren Behältern sammeln','Nach Arbeitsende und vor Pausen: Hände waschen, Hautpflegemittel verwenden'],
+   psa:['Schutzbrille (Gestellbrille) bei Spritzgefahr','Handschuhe aus Nitrilkautschuk oder Fluorkautschuk','Baumwoll-Unterziehhandschuhe empfohlen','Sicherheitsschuhe'],
+   gefahrenfall:['Ausgelaufenen Diesel mit saugfähigem unbrennbaren Material aufnehmen (Kieselgur, Sand, Ölbindemittel)','Vorsicht: Rutschgefahr!','Berst- und Explosionsgefahr bei Erhitzung','Bei Brand: Behälter mit Sprühwasser kühlen','Löschmittel: CO₂, Löschpulver, Wasser im Sprühstrahl (KEIN Vollstrahl)','Brandbekämpfung nur mit umluftunabhängigem Atemschutz und Schutzkleidung'],
+   erstHilfe:['👁 AUGENKONTAKT: 10 Min. unter fließendem Wasser (gespreizte Lider) spülen → immer Augenarzt aufsuchen','🤚 HAUTKONTAKT: Verunreinigte Kleidung sofort ausziehen. Mit Wasser und Seife reinigen. Keine Lösemittel.','😤 EINATMEN: Frischluft! Bei Bewusstlosigkeit: stabile Seitenlage, Atemwege freihalten, Atmung/Puls überwachen. Bei Atemstillstand: Beatmung. Notruf 112.','🤢 VERSCHLUCKT: KEIN Erbrechen! Nichts trinken. → Sofort Krankenhaus! Notruf 112.'],
+   entsorgung:'Nicht in Ausguss oder Mülltonne schütten. Produktreste in gekennzeichneten Behältern sammeln. Aufsaugmaterialien/Wischtücher als Sonderabfall entsorgen. Verunreinigtes Erdreich fachgerecht entsorgen.'},
+  {id:'bg02',icon:'🔥',titel:'Ottokraftstoff (Benzin) — Tanken von Kleingeräten',
+   anwendung:'Umgang mit Benzin beim Tanken von Freischneidern, Fugenschneidern, Stampfern.',
+   ghs:['GHS02','GHS06','GHS07','GHS08','GHS09'],signalwort:'GEFAHR',
+   gefahren:['KREBSERZEUGEND! Enthaltenes Benzol kann Krebs erzeugen (Klasse 1A) — Tätigkeiten mit krebserzeugenden Stoffen!','Kann zu vererbbaren Schäden führen','Kann das Kind im Mutterleib schädigen','Einatmen oder Hautaufnahme kann zu Gesundheitsschäden führen; reizt die Haut','Schwindel, Kopfschmerzen, Übelkeit, Benommenheit; Blutbildveränderungen möglich','Bei hohen Konzentrationen: Atem- und Herz-Kreislaufstillstand möglich','EXTREM entzündbar! Kriechende Dämpfe können in größerer Entfernung zur Entzündung führen','Explosionsgefahr in Behältern mit Restmengen','Eindringen in Boden, Gewässer und Kanalisation vermeiden'],
+   massnahmen:['Von Zündquellen fernhalten! Nicht rauchen! Keine offenen Flammen! Kein Funkenrisiko!','Keine Arbeit in abgeschlossenen Räumen ohne Belüftung','Schlag und Reibung vermeiden','Brandklasse-B-Feuerlöscher bereithalten','Gefäße nicht offen stehen lassen','Beim Tanken: Motor abkühlen lassen; Verspritzen vermeiden','Berührung mit Augen, Haut und Kleidung meiden','Vorbeugenden Hautschutz auftragen; nach Arbeit Hände und Gesicht reinigen','Verunreinigte Kleidung wechseln; Putzlappen in verschließbaren nichtbrennbaren Behältern','Beschäftigungsbeschränkungen für Schwangere und Jugendliche beachten'],
+   psa:['Schutzbrille (Gestellbrille) bei Spritzgefahr','Handschuhe aus Nitrilkautschuk oder Fluorkautschuk','Baumwoll-Unterziehhandschuhe empfohlen','Sicherheitsschuhe','Bei großen Mengen: Atemschutz'],
+   gefahrenfall:['Mit saugfähigem unbrennbaren Material aufnehmen (Kieselgur, Sand)','Vorsicht: Rutschgefahr durch ausgelaufene Flüssigkeit','Berst- und Explosionsgefahr bei Erhitzung!','Bei Brand: Behälter mit Sprühwasser kühlen','Löschmittel: CO₂, Löschpulver, Wasser im Sprühstrahl (KEIN Vollstrahl)','Brandbekämpfung nur mit umluftunabhängigem Atemschutz und Schutzkleidung'],
+   erstHilfe:['👁 AUGENKONTAKT: 10 Min. unter fließendem Wasser (gespreizte Lider) spülen → immer Augenarzt aufsuchen','🤚 HAUTKONTAKT: Verunreinigte Kleidung sofort ausziehen. Mit Wasser und Seife reinigen. Keine Lösemittel/Verdünner.','😤 EINATMEN: Frischluft! Bei Bewusstlosigkeit: stabile Seitenlage, Atemwege freihalten. Bei Atem-/Herzstillstand: Beatmung + Herzdruckmassage. Notruf 112.','🤢 VERSCHLUCKT: KEIN Erbrechen! Nichts trinken. Verschlucken kann zu Lungenschädigung führen. → Sofort Krankenhaus! Notruf 112.'],
+   entsorgung:'Nicht in Ausguss oder Mülltonne schütten. Produktreste in beständigen, gekennzeichneten Behältern sammeln. Aufsaugmaterialien als Sonderabfall (Abfallschlüssel 13 02) entsorgen.'},
+  {id:'bg03',icon:'🛢',titel:'Hydrauliköl und Schmierstoffe — Lagerung und Umgang',
+   anwendung:'Umgang mit Hydraulikölen, Schmierölen und Fetten bei Wartung und Befüllung von Baumaschinen. Gemäß TRGS 555.',
+   ghs:['GHS07','GHS08','GHS09'],signalwort:'ACHTUNG',
+   gefahren:['Bei verschlossenen Gebinden: keine unmittelbare Gesundheitsgefahr','Beim Abfüllen und bei größeren Mengen: Einatmen von Öldämpfen und -nebeln möglich','Aufnahme durch Einatmen oder Verschlucken; kann Atemwege, Augen und Verdauungsorgane reizen','Schwindel, Kopfschmerzen, Benommenheit bis Bewusstlosigkeit','Bei Erwärmung oder Versprühen: Bildung zündfähiger Gemische möglich','Erhöhte Entzündungsgefahr bei ölgetränktem Material','Eindringen in Boden, Gewässer und Kanalisation strikt vermeiden','Langzeitexposition: mögliche Hautreizung (Akne, Dermatitis)'],
+   massnahmen:['Bildung von Öldämpfen und -nebeln vermeiden','Falls Öldämpfe auftreten: von Zündquellen fernhalten, nicht rauchen','Beim Ab- und Umfüllen: Verspritzen vermeiden','Berührung mit Augen, Haut und Kleidung vermeiden','Nach Arbeit und vor Pausen: Hände gründlich reinigen; Hautpflegemittel verwenden','Verunreinigte Kleidung wechseln; keine verölten Putzlappen in Hosentaschen','Öle getrennt nach Sorten lagern (Hydrauliköl, Getriebeöl, Altöl nicht mischen!)','Hydrauliköl NICHT mit Altöl anderer Sorten vermischen','Rückhalteeinrichtungen für Öllager verwenden (Auffangwanne)'],
+   psa:['Schutzbrille (Gestellbrille)','Beim Abfüllen: nitrilgetränkte Baumwollhandschuhe','Bei längerem Kontakt oder größeren Mengen: Handschuhe aus Nitrilkautschuk','Baumwoll-Unterziehhandschuhe empfohlen','Sicherheitsschuhe'],
+   gefahrenfall:['Bei Auslaufen größerer Mengen (ca. 20 l): Beseitigung nur mit PSA (Nitrilhandschuhe, Atemschutzmaske Gasfilter A2)','Mit saugfähigem unbrennbaren Material aufnehmen (Kieselgur, Sand, Ölbindemittel)','Berst- und Explosionsgefahr bei Erhitzung','Löschmittel: Schaum, CO₂ oder Löschpulver','Bei Brand: Behälter mit Sprühwasser kühlen','Einleitung in Gewässer/Kanalisation sofort melden (Umweltbehörde, Notruf)'],
+   erstHilfe:['👁 AUGENKONTAKT: 10 Min. unter fließendem Wasser (gespreizte Lider) spülen → immer Augenarzt aufsuchen','🤚 HAUTKONTAKT: Verunreinigte Kleidung sofort ausziehen. Mit Wasser und Seife reinigen. Keine Verdünner oder Lösemittel.','😤 EINATMEN: Frischluft! Bei Bewusstlosigkeit: stabile Seitenlage, Atemwege freihalten. Bei Atem-/Herzstillstand: Beatmung + Herzdruckmassage. Notruf 112.','🤢 VERSCHLUCKT: KEIN Erbrechen! In kleinen Schlucken Wasser trinken lassen. Medizinisches Kohlepulver geben. → Krankenhaus!'],
+   entsorgung:'Nicht in Ausguss oder Mülltonne schütten. Hydrauliköle nicht mit anderen Altölen vermischen. In beständigen, verschließbaren, gekennzeichneten Gefäßen getrennt sammeln. Aufsaugmaterialien getrennt als Sonderabfall entsorgen.'},
+];
+
+function ghsPikto(codes){
+  const M={GHS02:['🔥','Entzündlich'],GHS06:['☠','Giftig'],GHS07:['⚠','Reizend'],GHS08:['🫁','Gesundheitsgef.'],GHS09:['🌿','Umweltgef.']};
+  return '<div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0">'+codes.map(c=>{const[ico,lbl]=M[c]||['⚠',c];return'<div style="display:flex;flex-direction:column;align-items:center;width:58px"><div style="width:46px;height:46px;background:#fff;border:2px solid #cc0000;transform:rotate(45deg);display:flex;align-items:center;justify-content:center"><span style="transform:rotate(-45deg);font-size:20px;line-height:1">'+ico+'</span></div><div style="font-size:9px;color:var(--text2);text-align:center;margin-top:6px;line-height:1.2">'+lbl+'</div></div>';}).join('')+'</div>';
+}
+
+function baList(titel,items,color){
+  if(!items||!items.length)return'';
+  return '<div style="margin-bottom:12px"><div style="font-size:10px;font-weight:700;color:'+color+';text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">&#9658; '+titel+'</div><ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:3px">'+items.map(i=>'<li style="font-size:12px;color:var(--text2);padding:5px 8px;background:var(--c3);border-left:2px solid '+color+';border-radius:0 var(--r3) var(--r3) 0">'+i+'</li>').join('')+'</ul></div>';
+}
+
+function baCard(b,tab){
+  const isGS=tab==='gefahrstoffe';
+  const hc=tab==='maschinen'?'var(--amber)':tab==='taetigkeiten'?'var(--brand)':'var(--red)';
+  let det='';
+  if(isGS){
+    det='<div style="margin-bottom:12px"><div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">&#9658; GHS-Piktogramme / Signalwort</div>'+ghsPikto(b.ghs||[])+'<div style="font-size:12px;color:var(--red);font-weight:700;margin-top:2px">Signalwort: '+b.signalwort+'</div></div>'+baList('Gefahren für Mensch und Umwelt',b.gefahren,'var(--red)')+baList('Schutzmaßnahmen & Verhaltensregeln',b.massnahmen,'var(--brand)')+baList('Persönliche Schutzausrüstung (PSA)',b.psa,'var(--amber)')+'<div style="margin-bottom:12px"><div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">&#9658; Erste Hilfe</div>'+(b.erstHilfe||[]).map(e=>'<div style="font-size:12px;color:var(--text2);padding:6px 8px;background:var(--c3);border-left:2px solid var(--red);border-radius:0 var(--r3) var(--r3) 0;margin-bottom:3px">'+e+'</div>').join('')+'</div>'+baList('Verhalten im Gefahrenfall',b.gefahrenfall,'var(--red)')+'<div style="font-size:11px;color:var(--text3);padding:8px;background:var(--c1);border-radius:var(--r3)"><strong>Entsorgung:</strong> '+b.entsorgung+'</div>';
+  }else{
+    det=baList('Gefahren für Mensch und Umwelt',b.gefahren,'var(--red)')+baList('Schutzmaßnahmen & Verhaltensregeln',b.massnahmen,'var(--brand)')+baList('Persönliche Schutzausrüstung (PSA)',b.psa,'var(--amber)')+baList('Verhalten bei Störungen',b.stoerungen,'var(--text2)')+baList('Erste Hilfe & Unfallverhalten',b.erstHilfe,'var(--green)')+'<div style="font-size:11px;color:var(--text3);padding:8px;background:var(--c1);border-radius:var(--r3)"><strong>Instandhaltung:</strong> '+b.instandhaltung+'</div>';
+  }
+  return '<div class="card" style="margin-bottom:8px;padding:0;overflow:hidden"><div style="padding:13px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="toggleBA(\''+b.id+'\')"><div style="font-size:24px;line-height:1;flex-shrink:0">'+b.icon+'</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--text)">'+b.titel+'</div><div style="font-size:10px;color:var(--text3);margin-top:2px">'+BA_FIRMA+' &nbsp;·&nbsp; Stand: '+BA_DATUM+'</div><div style="font-size:11px;color:var(--text2);margin-top:1px">'+b.anwendung+'</div></div><div id="ba-chv-'+b.id+'" style="color:'+hc+';font-size:18px;transition:transform .2s;flex-shrink:0">&#9658;</div></div><div id="ba-det-'+b.id+'" style="display:none;padding:0 13px 13px;border-top:1px solid var(--border)"><div style="padding-top:12px">'+det+'</div></div></div>';
+}
+
+function switchBATab(tab){
+  _baTab=tab;
+  ['maschinen','taetigkeiten','gefahrstoffe'].forEach(t=>{
+    const btn=document.getElementById('ba-tab-'+t);
+    if(btn)btn.className='tab'+(t===tab?' act':'');
+    const sec=document.getElementById('ba-sec-'+t);
+    if(sec)sec.style.display=t===tab?'block':'none';
+  });
 }
 
 function toggleBA(id){
-  const det=document.getElementById('ba-detail-'+id);
-  const chv=document.getElementById('ba-chevron-'+id);
+  const det=document.getElementById('ba-det-'+id);
+  const chv=document.getElementById('ba-chv-'+id);
+  if(!det)return;
   const open=det.style.display==='none';
   det.style.display=open?'block':'none';
-  chv.style.transform=open?'rotate(90deg)':'rotate(0deg)';
+  chv.style.transform=open?'rotate(90deg)':'';
+}
+
+function renderBetriebsanweisungen(){
+  const pg=document.getElementById('p-betriebsanweisungen');
+  pg.innerHTML='<div class="ph"><h2>&#128196; Betriebsanweisungen</h2><p>'+BA_FIRMA+' &mdash; Alle Betriebsanweisungen gem&auml;&szlig; &sect;14 ArbSchG &amp; DGUV Vorschrift 1</p></div>'
+    +'<div class="alert alert-d" style="margin-bottom:16px">&#9888; Diese Betriebsanweisungen sind verbindlich. Nichtbeachtung kann zu arbeitsrechtlichen Konsequenzen f&uuml;hren. Notruf: <strong>112</strong></div>'
+    +'<div class="tabs" style="margin-bottom:16px">'
+    +'<button class="tab'+(_baTab==='maschinen'?' act':'')+'" id="ba-tab-maschinen" onclick="switchBATab(\'maschinen\')">&#128295; Maschinen (12)</button>'
+    +'<button class="tab'+(_baTab==='taetigkeiten'?' act':'')+'" id="ba-tab-taetigkeiten" onclick="switchBATab(\'taetigkeiten\')">&#127959; T&auml;tigkeiten (6)</button>'
+    +'<button class="tab'+(_baTab==='gefahrstoffe'?' act':'')+'" id="ba-tab-gefahrstoffe" onclick="switchBATab(\'gefahrstoffe\')">&#9762; Gefahrstoffe (3)</button>'
+    +'</div>'
+    +'<div id="ba-sec-maschinen" style="display:'+(_baTab==='maschinen'?'block':'none')+'">'+BA_MASCHINEN_DATA.map(b=>baCard(b,'maschinen')).join('')+'</div>'
+    +'<div id="ba-sec-taetigkeiten" style="display:'+(_baTab==='taetigkeiten'?'block':'none')+'">'+BA_TAETIGKEITEN_DATA.map(b=>baCard(b,'taetigkeiten')).join('')+'</div>'
+    +'<div id="ba-sec-gefahrstoffe" style="display:'+(_baTab==='gefahrstoffe'?'block':'none')+'"><div class="alert alert-w" style="margin-bottom:12px">&#9763; T&auml;tigkeiten mit Gefahrstoffen gem&auml;&szlig; &sect;14 GefStoffV. Sicherheitsdatenbl&auml;tter (SDB) beim Vorgesetzten verf&uuml;gbar.</div>'+BA_GEFAHRSTOFFE_DATA.map(b=>baCard(b,'gefahrstoffe')).join('')+'</div>';
 }
 
 /* ═════════════════════════════════════ SETTINGS ═════════════════════════════════════ */
