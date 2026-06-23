@@ -1,4 +1,4 @@
-name: Deploy to IONOS via FTP
+name: Deploy to IONOS via SFTP
 
 on:
   push:
@@ -12,18 +12,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Deploy via FTP to IONOS
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Deploy via SFTP to IONOS
+        uses: pressidium/lftp-mirror-action@v1
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
+          host: access-5020452873.webspace-host.com
+          port: 22
+          user: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /
-          local-dir: ./
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            .github/**
-            CLAUDE.md
-            README.md
+          remoteDir: /
+          options: >
+            --exclude .git
+            --exclude .github
+            --exclude CLAUDE.md
+            --exclude README.md
+            --exclude desktop.ini
+            --delete
+            --no-perms
