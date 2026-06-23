@@ -18,13 +18,6 @@ jobs:
           host: access-5020452873.webspace-host.com
           port: 22
           user: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          pass: ${{ secrets.FTP_PASSWORD }}
+          localDir: ./
           remoteDir: /
-          options: >
-            --exclude .git
-            --exclude .github
-            --exclude CLAUDE.md
-            --exclude README.md
-            --exclude desktop.ini
-            --delete
-            --no-perms
