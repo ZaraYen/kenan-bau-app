@@ -20,4 +20,4 @@ jobs:
           user: ${{ secrets.FTP_USERNAME }}
           pass: ${{ secrets.FTP_PASSWORD }}
           localDir: ./
-          remoteDir: /htdocs/
+          remoteDir: /public/app/
