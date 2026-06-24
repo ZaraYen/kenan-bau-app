@@ -581,6 +581,7 @@ td.dim{color:var(--text2)}
       <div class="page" id="p-urlaub"></div>
       <div class="page" id="p-bautagesbericht"></div>
       <div class="page" id="p-fotodoku"></div>
+      <div class="page" id="p-notfallinfo"></div>
       <div class="page" id="p-settings"></div>
     </main>
   </div>
@@ -1047,7 +1048,7 @@ function ROLES(r){ return {admin:t('set_th_rolle')+': Admin',buero:'Büro/Birou'
 const ROLE_LABELS = {admin:'Administrator',buero:'Büro',vorarbeiter:'Vorarbeiter',mitarbeiter:'Mitarbeiter'};
 
 /* Globaler Cache — wird durch loadAll() befüllt */
-var S = { users:[], baustellen:[], arbeitsschutz:{}, eintraege:[], nid:0 };
+var S = { users:[], baustellen:[], arbeitsschutz:{}, eintraege:[], nid:0, notfallInfo:{} };
 
 /* Spinner */
 function showSpinner(on){
@@ -1077,13 +1078,14 @@ async function loadAll(){
   if(!initSB()){toast('Keine Supabase-Verbindung','te');return;}
   showSpinner(true);
   try{
-    const[usersR,bsR,asR,ascR,bzR,tgbR]=await Promise.all([
+    const[usersR,bsR,asR,ascR,bzR,tgbR,nfR]=await Promise.all([
       SB.from('profiles').select('*').order('full_name'),
       SB.from('baustellen').select('*').order('name'),
       SB.from('arbeitsschutz').select('*'),
       SB.from('as_confirmations').select('*').order('confirmed_at',{ascending:false}),
       SB.from('bs_zuweisung').select('*'),
       SB.from('tages_gb').select('*').order('datum',{ascending:false}).limit(200),
+      SB.from('notfall_info').select('*'),
     ]);
     if(usersR.error)throw usersR.error;
     if(bsR.error)throw bsR.error;
@@ -1133,6 +1135,10 @@ async function loadAll(){
       beteiligte:l.beteiligte||'', erstelltVonName:l.erstellt_von_name||'',
       abgeschlossen:!!l.abgeschlossen
     }));
+
+    /* Notfall-Info: indexiert nach baustelle_id */
+    S.notfallInfo={};
+    (nfR.data||[]).forEach(n=>{ S.notfallInfo[n.baustelle_id]=n; });
 
     /* Tages-GB */
     S.tagesGB=(tgbR.data||[]).map(g=>({
@@ -1347,6 +1353,7 @@ const NAV=[
   {id:'urlaub',icon:li('calendar'),lbl:()=>t('nav_urlaub'),show:()=>CAN.seeVacation(CU.rolle)},
   {id:'bautagesbericht',icon:li('file-text'),lbl:()=>t('nav_bautagesbericht'),show:()=>true},
   {id:'fotodoku',icon:li('camera'),lbl:()=>t('nav_fotodoku'),show:()=>true},
+  {id:'notfallinfo',icon:li('alert-triangle'),lbl:()=>'Notfall-Info',show:()=>true},
   {id:'bszuweisung',icon:li('key'),lbl:()=>'BS-Zuweisung',show:()=>CAN.manageBZuweisung(CU.rolle)},
   {id:'settings',icon:li('settings'),lbl:()=>t('nav_settings'),show:()=>CAN.manageUsers(CU.rolle)}
 ];
@@ -1418,6 +1425,7 @@ async function renderPage(id){
     urlaub:renderUrlaub,
     bautagesbericht:renderBautagesbericht,
     fotodoku:renderFotodoku,
+    notfallinfo:renderNotfallInfo,
     settings:renderSettings
   };
   const _fn=_pages[id]||(()=>{});
@@ -1850,6 +1858,7 @@ async function renderDashboard(){
     bautagesbericht:{bg:'#ffedd5',c:'#ea580c',sub:'Tagesbericht'},
     fotodoku:{bg:'#fef9c3',c:'#ca8a04',sub:'Bilder'},
     bszuweisung:{bg:'#ccfbf1',c:'#0d9488',sub:'Zuweisung'},
+    notfallinfo:{bg:'#fee2e2',c:'#dc2626',sub:'Notruf & Kontakte'},
     settings:{bg:'#f1f5f9',c:'#475569',sub:'Verwaltung'},
   };
   const tiles=NAV.filter(n=>n.show()&&n.id!=='dashboard').map(n=>{
@@ -4833,6 +4842,172 @@ async function deleteUser(id){
   showSpinner(false);
   if(error){toast('Fehler: '+error.message,'te');return;}
   await loadAll();renderSettings();toast(t('set_user_deleted'));
+}
+
+/* ═════════════════════════════════════ NOTFALL-INFO ═════════════════════════════════════ */
+async function renderNotfallInfo(){
+  const el=document.getElementById('p-notfallinfo');if(!el)return;
+  const bsOpts=getErlaubteBS().map(b=>`<option value="${b.id}">${b.name} (${b.kst})</option>`).join('');
+  el.innerHTML=`
+  <div class="ph"><h2>🚨 Notfall-Info</h2><p>Notrufnummern &amp; Kontakte je Baustelle</p></div>
+  <div class="fg" style="margin-bottom:16px">
+    <label>Baustelle</label>
+    <select class="fc" id="nf-bs-sel" onchange="renderNFDetail()" style="font-size:15px;padding:11px 13px">
+      <option value="">— Baustelle wählen —</option>${bsOpts}
+    </select>
+  </div>
+  <div id="nf-detail"></div>`;
+  const bs=getErlaubteBS();
+  if(bs.length===1){document.getElementById('nf-bs-sel').value=bs[0].id;await renderNFDetail();}
+}
+
+async function renderNFDetail(){
+  const sel=document.getElementById('nf-bs-sel');
+  const el=document.getElementById('nf-detail');
+  if(!sel||!el)return;
+  const bsId=sel.value;
+  if(!bsId){el.innerHTML='';return;}
+  let nf=S.notfallInfo[bsId]||null;
+  if(!nf&&initSB()){
+    const{data}=await SB.from('notfall_info').select('*').eq('baustelle_id',bsId).maybeSingle();
+    if(data){S.notfallInfo[bsId]=data;nf=data;}
+  }
+  const canEdit=CAN.manageBS(CU.rolle);
+  if(!nf){
+    el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><p>Noch keine Notfall-Info für diese Baustelle hinterlegt.</p>
+    ${canEdit?`<button class="btn btn-primary" style="margin-top:12px" onclick="openNFForm('${bsId}')">+ Notfall-Info anlegen</button>`:''}</div>`;
+    return;
+  }
+  function nfRow(lbl,val,tel){
+    if(!val&&!tel)return'';
+    return`<div style="padding:9px 0;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px">${lbl}</div>
+        ${val?`<div style="font-size:13px;color:var(--text)">${val}</div>`:''}
+        ${tel?`<div style="font-family:var(--mono);font-size:14px;font-weight:600;color:var(--brand);margin-top:2px">${tel}</div>`:''}
+      </div>
+      ${tel?`<a href="tel:${tel}" class="nf-call-btn" style="flex-shrink:0;margin-top:4px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.7A2 2 0 012 .1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 14.93z"/></svg> Anrufen</a>`:''}
+    </div>`;
+  }
+  const koord=nf.koordinaten_lat&&nf.koordinaten_lng?`${nf.koordinaten_lat}, ${nf.koordinaten_lng}`:'';
+  const mapsHref=koord?`https://www.google.com/maps/search/?api=1&query=${nf.koordinaten_lat},${nf.koordinaten_lng}`:'';
+  el.innerHTML=`
+  <div style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    ${canEdit?`<button class="btn btn-ghost btn-sm" onclick="openNFForm('${bsId}')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Bearbeiten</button>`:'<div></div>'}
+  </div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div class="card-hd"><div class="card-title">📍 Standort &amp; Allgemein</div></div>
+    ${koord?`<div style="padding:9px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Koordinaten</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <span style="font-family:var(--mono);font-size:13px;color:var(--text)">${koord}</span>
+        <a href="${mapsHref}" target="_blank" class="nf-call-btn" style="flex-shrink:0">🗺 Maps</a>
+      </div>
+    </div>`:''}
+    ${nfRow('BG-Mitgliedsnummer',nf.bg_mitgliedsnr,'')}
+    ${nfRow('Ansprechpartner',nf.ansprechpartner,'')}
+    ${nfRow('Ersthelfer',nf.ersthelfer,'')}
+    ${nfRow('Brandschutzhelfer',nf.brandschutzhelfer,'')}
+  </div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div class="card-hd"><div class="card-title">🏥 Medizinische Versorgung</div></div>
+    ${nfRow('Krankenhaus',nf.krankenhaus_name+(nf.krankenhaus_adresse?' · '+nf.krankenhaus_adresse:''),nf.krankenhaus_tel)}
+    ${nfRow('BG-Arzt',nf.bg_arzt_name+(nf.bg_arzt_adresse?' · '+nf.bg_arzt_adresse:''),nf.bg_arzt_tel)}
+    ${nfRow('Augenarzt',nf.augenarzt_name+(nf.augenarzt_adresse?' · '+nf.augenarzt_adresse:''),nf.augenarzt_tel)}
+  </div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div class="card-hd"><div class="card-title">⚡ Versorgungsunternehmen</div></div>
+    ${nfRow('Gas',nf.gas_name||'',nf.gas_tel)}
+    ${nfRow('Wasser',nf.wasser_name||'',nf.wasser_tel)}
+    ${nfRow('Strom',nf.strom_name||'',nf.strom_tel)}
+    ${nfRow('Telekom / Netz',''  ,nf.telekom_tel)}
+  </div>
+
+  ${nf.sonstige?`<div class="card" style="margin-bottom:10px">
+    <div class="card-hd"><div class="card-title">📝 Sonstiges</div></div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${nf.sonstige}</div>
+  </div>`:''}`;
+}
+
+function openNFForm(bsId){
+  const nf=S.notfallInfo[bsId]||{};
+  function fi(id,lbl,val,ph=''){return`<div class="fg"><label>${lbl}</label><input class="fc" id="${id}" value="${val||''}" placeholder="${ph}"></div>`;}
+  function fiTel(id,lbl,val){return`<div class="fg"><label>${lbl}</label><input class="fc" id="${id}" type="tel" value="${val||''}" placeholder="z.B. 0221 12345"></div>`;}
+  openModal('Notfall-Info bearbeiten',`
+    <div class="sec-lbl" style="margin-bottom:8px">📍 Standort &amp; Allgemein</div>
+    <div class="fr">
+      ${fi('nff-lat','Koordinaten Breitengrad',nf.koordinaten_lat,'z.B. 51.1657')}
+      ${fi('nff-lng','Längengrad',nf.koordinaten_lng,'z.B. 10.4515')}
+    </div>
+    ${fi('nff-bg','BG-Mitgliedsnummer',nf.bg_mitgliedsnr)}
+    ${fi('nff-ap','Ansprechpartner',nf.ansprechpartner,'Name')}
+    ${fi('nff-eh','Ersthelfer',nf.ersthelfer,'Name')}
+    ${fi('nff-bsh','Brandschutzhelfer',nf.brandschutzhelfer,'Name')}
+    <div class="div"></div>
+    <div class="sec-lbl" style="margin-bottom:8px">🏥 Medizinische Versorgung</div>
+    ${fi('nff-kh-n','Krankenhaus Name',nf.krankenhaus_name)}
+    ${fi('nff-kh-a','Krankenhaus Adresse',nf.krankenhaus_adresse)}
+    ${fiTel('nff-kh-t','Krankenhaus Telefon',nf.krankenhaus_tel)}
+    ${fi('nff-bg-n','BG-Arzt Name',nf.bg_arzt_name)}
+    ${fi('nff-bg-a','BG-Arzt Adresse',nf.bg_arzt_adresse)}
+    ${fiTel('nff-bg-t','BG-Arzt Telefon',nf.bg_arzt_tel)}
+    ${fi('nff-au-n','Augenarzt Name',nf.augenarzt_name)}
+    ${fi('nff-au-a','Augenarzt Adresse',nf.augenarzt_adresse)}
+    ${fiTel('nff-au-t','Augenarzt Telefon',nf.augenarzt_tel)}
+    <div class="div"></div>
+    <div class="sec-lbl" style="margin-bottom:8px">⚡ Versorgungsunternehmen</div>
+    <div class="fr">
+      ${fi('nff-gas-n','Gas Anbieter',nf.gas_name)}
+      ${fiTel('nff-gas-t','Gas Telefon',nf.gas_tel)}
+    </div>
+    <div class="fr">
+      ${fi('nff-was-n','Wasser Anbieter',nf.wasser_name)}
+      ${fiTel('nff-was-t','Wasser Telefon',nf.wasser_tel)}
+    </div>
+    <div class="fr">
+      ${fi('nff-str-n','Strom Anbieter',nf.strom_name)}
+      ${fiTel('nff-str-t','Strom Telefon',nf.strom_tel)}
+    </div>
+    ${fiTel('nff-tel','Telekom / Netz Telefon',nf.telekom_tel)}
+    <div class="fg"><label>Sonstiges</label><textarea class="fc" id="nff-sonst" rows="3">${nf.sonstige||''}</textarea></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-primary" onclick="saveNFForm('${bsId}')">Speichern</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Abbrechen</button>
+    </div>`);
+}
+
+async function saveNFForm(bsId){
+  const g=id=>document.getElementById(id)?.value.trim()||null;
+  const row={
+    baustelle_id:bsId,
+    koordinaten_lat:g('nff-lat'), koordinaten_lng:g('nff-lng'),
+    bg_mitgliedsnr:g('nff-bg'), ansprechpartner:g('nff-ap'),
+    ersthelfer:g('nff-eh'), brandschutzhelfer:g('nff-bsh'),
+    krankenhaus_name:g('nff-kh-n'), krankenhaus_adresse:g('nff-kh-a'), krankenhaus_tel:g('nff-kh-t'),
+    bg_arzt_name:g('nff-bg-n'), bg_arzt_adresse:g('nff-bg-a'), bg_arzt_tel:g('nff-bg-t'),
+    augenarzt_name:g('nff-au-n'), augenarzt_adresse:g('nff-au-a'), augenarzt_tel:g('nff-au-t'),
+    gas_name:g('nff-gas-n'), gas_tel:g('nff-gas-t'),
+    wasser_name:g('nff-was-n'), wasser_tel:g('nff-was-t'),
+    strom_name:g('nff-str-n'), strom_tel:g('nff-str-t'),
+    telekom_tel:g('nff-tel'), sonstige:g('nff-sonst')
+  };
+  showSpinner(true);
+  const existing=S.notfallInfo[bsId];
+  let err;
+  if(existing){
+    ({error:err}=await SB.from('notfall_info').update(row).eq('baustelle_id',bsId));
+  } else {
+    ({error:err}=await SB.from('notfall_info').insert(row));
+  }
+  showSpinner(false);
+  if(err){toast('Fehler: '+err.message,'te');return;}
+  S.notfallInfo[bsId]=row;
+  closeModal();
+  await renderNFDetail();
+  toast('Notfall-Info gespeichert','ts');
 }
 
 /* ═════════════════════════════════════ HELPERS ═════════════════════════════════════ */
