@@ -4583,14 +4583,58 @@ function baList(titel,items,color){
 
 function baCard(b,tab){
   const isGS=tab==='gefahrstoffe';
-  const hc=tab==='maschinen'?'var(--amber)':tab==='taetigkeiten'?'var(--brand)':'var(--red)';
-  let det='';
-  if(isGS){
-    det='<div style="margin-bottom:12px"><div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">&#9658; GHS-Piktogramme / Signalwort</div>'+ghsPikto(b.ghs||[])+'<div style="font-size:12px;color:var(--red);font-weight:700;margin-top:2px">Signalwort: '+b.signalwort+'</div></div>'+baList('Gefahren für Mensch und Umwelt',b.gefahren,'var(--red)')+baList('Schutzmaßnahmen & Verhaltensregeln',b.massnahmen,'var(--brand)')+baList('Persönliche Schutzausrüstung (PSA)',b.psa,'var(--amber)')+'<div style="margin-bottom:12px"><div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">&#9658; Erste Hilfe</div>'+(b.erstHilfe||[]).map(e=>'<div style="font-size:12px;color:var(--text2);padding:6px 8px;background:var(--c3);border-left:2px solid var(--red);border-radius:0 var(--r3) var(--r3) 0;margin-bottom:3px">'+e+'</div>').join('')+'</div>'+baList('Verhalten im Gefahrenfall',b.gefahrenfall,'var(--red)')+'<div style="font-size:11px;color:var(--text3);padding:8px;background:var(--c1);border-radius:var(--r3)"><strong>Entsorgung:</strong> '+b.entsorgung+'</div>';
-  }else{
-    det=baList('Gefahren für Mensch und Umwelt',b.gefahren,'var(--red)')+baList('Schutzmaßnahmen & Verhaltensregeln',b.massnahmen,'var(--brand)')+baList('Persönliche Schutzausrüstung (PSA)',b.psa,'var(--amber)')+baList('Verhalten bei Störungen',b.stoerungen,'var(--text2)')+baList('Erste Hilfe & Unfallverhalten',b.erstHilfe,'var(--green)')+'<div style="font-size:11px;color:var(--text3);padding:8px;background:var(--c1);border-radius:var(--r3)"><strong>Instandhaltung:</strong> '+b.instandhaltung+'</div>';
+  const PSA_MAP=[
+    {k:'helm',ico:'⛑',lbl:'Schutzhelm'},{k:'schuhe',ico:'👢',lbl:'S-Schuhe'},{k:'handschuh',ico:'🧤',lbl:'Handschuhe'},
+    {k:'brille',ico:'🥽',lbl:'Schutzbrille'},{k:'warnweste',ico:'🦺',lbl:'Warnweste'},{k:'weste',ico:'🦺',lbl:'Warnweste'},
+    {k:'gehör',ico:'🎧',lbl:'Gehörschutz'},{k:'atem',ico:'😷',lbl:'Atemschutz'},{k:'maske',ico:'😷',lbl:'Atemschutz'},
+    {k:'gesicht',ico:'🛡',lbl:'Gesichtsschutz'},{k:'sicherheitsgeschirr',ico:'🔗',lbl:'Sicherheitsgeschirr'},
+    {k:'geschirr',ico:'🔗',lbl:'Anschallgurt'},{k:'overall',ico:'🥼',lbl:'Schutzanzug'},
+  ];
+  function psaIco(txt){
+    const low=txt.toLowerCase();
+    const f=PSA_MAP.find(p=>low.includes(p.k));
+    return f||{ico:'🔰',lbl:txt.split(' ').slice(0,2).join(' ')};
   }
-  return '<div class="card" style="margin-bottom:8px;padding:0;overflow:hidden"><div style="padding:13px;cursor:pointer;display:flex;align-items:center;gap:12px" onclick="toggleBA(\''+b.id+'\')"><div style="font-size:24px;line-height:1;flex-shrink:0">'+b.icon+'</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--text)">'+b.titel+'</div><div style="font-size:10px;color:var(--text3);margin-top:2px">'+BA_FIRMA+' &nbsp;·&nbsp; Stand: '+BA_DATUM+'</div><div style="font-size:11px;color:var(--text2);margin-top:1px">'+b.anwendung+'</div></div><div id="ba-chv-'+b.id+'" style="color:'+hc+';font-size:18px;transition:transform .2s;flex-shrink:0">&#9658;</div></div><div id="ba-det-'+b.id+'" style="display:none;padding:0 13px 13px;border-top:1px solid var(--border)"><div style="padding-top:12px">'+det+'</div></div></div>';
+  function secBar(t){return`<div style="background:#1a3a6a;color:#fff;text-align:center;font-weight:700;font-size:11px;padding:5px 10px;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid #000">${t}</div>`;}
+  function rows(items){
+    if(!items||!items.length)return'<p style="font-size:11px;color:#555;padding:6px 10px;margin:0">—</p>';
+    return'<ul style="list-style:disc;padding:6px 10px 6px 26px;margin:0">'+items.map(i=>`<li style="font-size:11px;color:#000;line-height:1.5;padding:1px 0">${i}</li>`).join('')+'</ul>';
+  }
+  function psaGrid(psa){
+    if(!psa||!psa.length)return'<p style="font-size:11px;color:#555;padding:6px;margin:0">—</p>';
+    return`<div style="display:flex;flex-wrap:wrap;gap:8px;padding:8px">${psa.map(p=>{const m=psaIco(p);return`<div style="display:flex;flex-direction:column;align-items:center;width:54px"><div style="width:42px;height:42px;border-radius:50%;background:#1a3a6a;display:flex;align-items:center;justify-content:center;font-size:20px">${m.ico}</div><div style="font-size:8px;color:#000;text-align:center;margin-top:3px;line-height:1.2">${m.lbl}</div></div>`;}).join('')}</div>`;
+  }
+
+  const docHeader=`<div style="display:grid;grid-template-columns:1.4fr 2fr 1fr 1fr;border-bottom:2px solid #000;font-size:10px;color:#000">
+    <div style="padding:6px 8px;border-right:1px solid #000;font-weight:900;font-size:12px;color:#1a3a6a;letter-spacing:.5px">BETRIEBSANWEISUNG<br><span style="font-size:9px;font-weight:400;color:#333">gem. §14 ArbSchG</span></div>
+    <div style="padding:6px 8px;border-right:1px solid #000"><strong>Betrieb:</strong> Kenan Straßen &amp; Tiefbau GbR</div>
+    <div style="padding:6px 8px;border-right:1px solid #000"><strong>Baustelle:</strong></div>
+    <div style="padding:6px 8px"><strong>Datum:</strong> ${BA_DATUM}</div>
+  </div>`;
+
+  const titleRow=`<div style="padding:10px 12px;border-bottom:1px solid #000;display:flex;align-items:center;gap:10px;background:#f5f7fa;cursor:pointer" onclick="toggleBA('${b.id}')">
+    <span style="font-size:26px;flex-shrink:0">${b.icon}</span>
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:700;font-size:14px;color:#000">${b.titel}</div>
+      <div style="font-size:10px;color:#555;margin-top:2px">${BA_FIRMA} · Stand: ${BA_DATUM}</div>
+      <div style="font-size:11px;color:#333;margin-top:1px">${b.anwendung}</div>
+    </div>
+    <div id="ba-chv-${b.id}" style="color:#1a3a6a;font-size:18px;transition:transform .2s;flex-shrink:0">&#9658;</div>
+  </div>`;
+
+  let sections='';
+  if(isGS){
+    sections+=`<div style="border-bottom:1px solid #000">${secBar('GHS-Piktogramme / Signalwort')}<div style="padding:8px 12px">${ghsPikto(b.ghs||[])}<div style="font-size:11px;font-weight:700;color:#cc0000">Signalwort: ${b.signalwort}</div></div></div>`;
+  }
+  sections+=`<div style="border-bottom:1px solid #000">${secBar('Gefahren für Mensch und Umwelt')}<div style="display:grid;grid-template-columns:2fr 1fr">${rows(b.gefahren)}<div style="border-left:1px solid #ccc"></div></div></div>`;
+  sections+=`<div style="border-bottom:1px solid #000">${secBar('Schutzmaßnahmen und Verhaltensregeln')}${rows(b.massnahmen)}</div>`;
+  sections+=`<div style="border-bottom:1px solid #000">${secBar('Persönliche Schutzausrüstung (PSA)')}<div style="display:grid;grid-template-columns:1fr 1fr"><div style="border-right:1px solid #ccc">${rows(b.psa)}</div>${psaGrid(b.psa)}</div></div>`;
+  sections+=`<div style="border-bottom:1px solid #000">${secBar('Verhalten bei Störungen / Gefahrenfall')}${rows(isGS?b.gefahrenfall:b.stoerungen)}</div>`;
+  sections+=`<div style="border-bottom:1px solid #000">${secBar('Erste Hilfe')}${rows(b.erstHilfe)}</div>`;
+  sections+=`<div>${secBar('Sachgerechte Entsorgung')}<div style="padding:6px 10px"><p style="font-size:11px;color:#000;margin:0">${isGS?(b.entsorgung||'—'):(b.instandhaltung||'—')}</p></div></div>`;
+
+  const doc=`<div style="background:#fff;color:#000;border:2px solid #000;font-family:Arial,sans-serif;overflow:hidden">${docHeader}${titleRow}<div id="ba-det-${b.id}" style="display:none">${sections}</div></div>`;
+  return`<div style="margin-bottom:14px">${doc}</div>`;
 }
 
 function switchBATab(tab){
