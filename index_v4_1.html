@@ -1099,7 +1099,8 @@ async function loadAll(){
     /* Baustellen */
     S.baustellen=(bsR.data||[]).map(b=>({
       id:b.id, name:b.name, kst:b.kst, adresse:b.adresse||'',
-      bauleiter:b.bauleiter||'', status:b.status
+      bauleiter:b.bauleiter||'', status:b.status,
+      lat:b.koordinaten_lat||null, lng:b.koordinaten_lng||null, radius:b.geo_radius||100
     }));
 
     /* Arbeitsschutz: indexiert nach baustelle_id */
@@ -1608,8 +1609,19 @@ async function renderKolonne(){
   if(CU.rolle==='vorarbeiter') initIDs.add(CU.id); /* VA selbst immer dabei */
   kolonneSelectedIDs=initIDs;
   _drawMAChips(allMA);
-  onVAZeitChange(); /* Netto berechnen */
+  onVAZeitChange();
   onKolonneDatumChange();
+  tryGPSKolonne();
+}
+
+async function tryGPSKolonne(){
+  const sel=document.getElementById('kol-bs');
+  if(!sel||sel.value)return; /* bereits ausgewählt → nicht überschreiben */
+  const found=await detectNearestBS();
+  if(!found)return;
+  sel.value=found.id;
+  onKolonneBSChange();
+  toast(`📍 Baustelle erkannt: ${found.name}`,'ts');
 }
 function setKolonneDatum(val,btn){
   document.getElementById('kol-datum').value=val;
@@ -2008,10 +2020,19 @@ async function renderErfassen(){
     <!-- BAUSTELLE -->
     <div class="fg">
       <label id="lbl-baustelle" class="req">${t('erf_baustelle')}</label>
-      <select id="ef-bs" class="fc" style="font-size:15px;padding:11px 13px" onchange="checkBSLock()">
+      <div id="ef-gps-banner" style="display:none;margin-bottom:7px;padding:9px 12px;background:rgba(46,139,192,.12);border:1px solid rgba(46,139,192,.35);border-radius:var(--r3);display:none;align-items:center;justify-content:space-between;gap:8px">
+        <div style="font-size:12px;color:var(--brand)"><strong>📍 Baustelle erkannt</strong> <span id="ef-gps-name" style="color:var(--text)"></span></div>
+        <button class="btn btn-ghost btn-sm" style="flex-shrink:0;font-size:11px" onclick="clearGPSSelection()">Ändern</button>
+      </div>
+      <select id="ef-bs" class="fc" style="font-size:15px;padding:11px 13px" onchange="onErfassenBSChange()">
         <option value="">${t('erf_baustelle_ph')}</option>${bsOpts}
       </select>
       <div id="ef-bs-warn" class="alert alert-d" style="display:none;margin-top:7px;"></div>
+    </div>
+    <!-- NOTFALL MINI-KARTE -->
+    <div id="ef-nf-card" style="display:none;margin-top:2px;margin-bottom:4px;padding:10px 13px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.25);border-radius:var(--r3)">
+      <div style="font-size:10px;color:var(--red);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">🚨 Notfall-Info dieser Baustelle</div>
+      <div id="ef-nf-body" style="font-size:12px;color:var(--text2);line-height:1.7"></div>
     </div>
 
     <div class="div"></div>
@@ -2078,7 +2099,8 @@ async function renderErfassen(){
   </div>`;
 
   buildArtChips();
-  onDatumChange(); /* init Sollstunden-Anzeige */
+  onDatumChange();
+  tryGPSErfassen();
 }
 
 function setQuickDate(val,btn){
@@ -2241,6 +2263,23 @@ async function saveEintrag(){
     if(!v||!b){toast(t('erf_err_time'),'te');return;}
     toast(t('erf_err_time2'),'te');return;
   }
+  /* Zeitüberschneidungs-Check */
+  if(!isAbs){
+    const vb2=getVonBis();
+    if(vb2.von&&vb2.bis){
+      const toMin=s=>{const[h,m]=s.split(':').map(Number);return h*60+m;};
+      const newS=toMin(vb2.von),newE=toMin(vb2.bis);
+      if(newE<=newS){toast('Endzeit muss nach Startzeit liegen','te');return;}
+      const tagesEintraege=S.eintraege.filter(e=>e.datum===datum&&e.userId===CU.id&&e.beginn&&e.ende);
+      for(const e of tagesEintraege){
+        const eS=toMin(e.beginn),eE=toMin(e.ende);
+        if(newS<eE&&newE>eS){
+          const bs2=S.baustellen.find(b=>b.id===e.baustelleId);
+          toast(`Zeitüberschneidung mit ${bs2?bs2.name:'vorhandenem Eintrag'} (${e.beginn}–${e.ende})`,'te');return;
+        }
+      }
+    }
+  }
   const vb=getVonBis();
   S.eintraege.unshift({
     id:S.nid++,userId:CU.id,datum,baustelleId:bid,
@@ -2273,8 +2312,16 @@ function updatePauseOpts(sel,rawH){
   }
 }
 
+function onErfassenBSChange(){
+  checkBSLock();
+  updateNFMiniCard(document.getElementById('ef-bs')?.value||null);
+  /* Wenn manuell geändert → GPS-Banner ausblenden */
+  const banner=document.getElementById('ef-gps-banner');
+  if(banner)banner.style.display='none';
+}
+
 function checkBSLock(){
-  const bid=parseInt(document.getElementById('ef-bs')?.value)||null;
+  const bid=document.getElementById('ef-bs')?.value||null;
   const warn=document.getElementById('ef-bs-warn');
   if(!bid){if(warn)warn.style.display='none';return;}
   const as=S.arbeitsschutz[bid];
@@ -2284,6 +2331,52 @@ function checkBSLock(){
   } else {
     if(warn)warn.style.display='none';
   }
+}
+
+function updateNFMiniCard(bsId){
+  const card=document.getElementById('ef-nf-card');
+  const body=document.getElementById('ef-nf-body');
+  if(!card||!body)return;
+  if(!bsId){card.style.display='none';return;}
+  const nf=S.notfallInfo[bsId];
+  const bs=S.baustellen.find(b=>b.id===bsId);
+  const lines=[];
+  if(bs?.adresse) lines.push(`📍 ${bs.adresse}`);
+  if(bs?.bauleiter) lines.push(`👷 Bauleiter: ${bs.bauleiter}`);
+  if(nf){
+    if(nf.ansprechpartner) lines.push(`📞 Ansprechpartner: ${nf.ansprechpartner}`);
+    if(nf.ersthelfer) lines.push(`⛑ Ersthelfer: ${nf.ersthelfer}`);
+    if(nf.krankenhaus_name) lines.push(`🏥 ${nf.krankenhaus_name}${nf.krankenhaus_tel?' · <a href="tel:'+nf.krankenhaus_tel+'" style="color:var(--brand)">'+nf.krankenhaus_tel+'</a>':''}`);
+    if(nf.bg_arzt_name) lines.push(`🩺 BG-Arzt: ${nf.bg_arzt_name}${nf.bg_arzt_tel?' · <a href="tel:'+nf.bg_arzt_tel+'" style="color:var(--brand)">'+nf.bg_arzt_tel+'</a>':''}`);
+  }
+  if(!lines.length){card.style.display='none';return;}
+  body.innerHTML=lines.join('<br>');
+  card.style.display='block';
+}
+
+async function tryGPSErfassen(){
+  const sel=document.getElementById('ef-bs');
+  if(!sel)return;
+  const found=await detectNearestBS();
+  if(!found)return;
+  sel.value=found.id;
+  checkBSLock();
+  updateNFMiniCard(found.id);
+  const banner=document.getElementById('ef-gps-banner');
+  const name=document.getElementById('ef-gps-name');
+  if(banner&&name){
+    name.textContent=found.name;
+    banner.style.display='flex';
+  }
+}
+
+function clearGPSSelection(){
+  const banner=document.getElementById('ef-gps-banner');
+  if(banner)banner.style.display='none';
+  const sel=document.getElementById('ef-bs');
+  if(sel)sel.value='';
+  updateNFMiniCard(null);
+  checkBSLock();
 }
 
 /* ═════════════════════════════════════ EINTRÄGE ═════════════════════════════════════ */
@@ -3266,17 +3359,39 @@ function openBSForm(id=null){
     </div>
     <div class="fg"><label>Adresse</label><input class="fc" id="bsf-a" value="${b?.adresse||''}"></div>
     <div class="fg"><label>${t('th_status')}</label><select class="fc" id="bsf-st"><option value="aktiv" ${!b||b.status==='aktiv'?'selected':''}>Aktiv</option><option value="abgeschlossen" ${b?.status==='abgeschlossen'?'selected':''}>Abgeschlossen</option></select></div>
+    <div class="div"></div>
+    <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:9px">📍 GPS-Erkennung (optional)</div>
+    <div class="fr">
+      <div class="fg"><label>Breitengrad</label><input class="fc" id="bsf-lat" value="${b?.lat||''}" placeholder="z.B. 52.5200"></div>
+      <div class="fg"><label>Längengrad</label><input class="fc" id="bsf-lng" value="${b?.lng||''}" placeholder="z.B. 13.4050"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Erkennungs-Radius (m)</label><input class="fc" id="bsf-radius" type="number" value="${b?.radius||100}" min="10" max="2000" placeholder="100"></div>
+      <div class="fg" style="display:flex;align-items:flex-end"><button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="bsfGetLocation()">📡 Standort jetzt ermitteln</button></div>
+    </div>
+    <div id="bsf-geo-hint" style="display:none;font-size:11px;color:var(--green);margin-top:-8px;margin-bottom:8px">✓ Standort übernommen</div>
     <div style="display:flex;gap:8px;margin-top:4px">
       <button class="btn btn-primary" onclick="saveBSForm(${id?`'${id}'`:'null'})">Speichern</button>
       <button class="btn btn-ghost" onclick="closeModal()">Abbrechen</button>
     </div>`);
 }
 
+function bsfGetLocation(){
+  if(!navigator.geolocation){toast('GPS nicht verfügbar','te');return;}
+  navigator.geolocation.getCurrentPosition(p=>{
+    document.getElementById('bsf-lat').value=p.coords.latitude.toFixed(6);
+    document.getElementById('bsf-lng').value=p.coords.longitude.toFixed(6);
+    const h=document.getElementById('bsf-geo-hint');if(h)h.style.display='block';
+  },()=>toast('Standort konnte nicht ermittelt werden','te'),{timeout:8000});
+}
+
 async function saveBSForm(id){
   const n=document.getElementById('bsf-n').value.trim();
   const k=document.getElementById('bsf-k').value.trim();
   if(!n||!k){toast(t('bs_err_name'),'te');return;}
-  const row={name:n,kst:k,bauleiter:document.getElementById('bsf-bl').value,adresse:document.getElementById('bsf-a').value,status:document.getElementById('bsf-st').value};
+  const latV=document.getElementById('bsf-lat').value.trim()||null;
+  const lngV=document.getElementById('bsf-lng').value.trim()||null;
+  const row={name:n,kst:k,bauleiter:document.getElementById('bsf-bl').value,adresse:document.getElementById('bsf-a').value,status:document.getElementById('bsf-st').value,koordinaten_lat:latV,koordinaten_lng:lngV,geo_radius:parseInt(document.getElementById('bsf-radius').value)||100};
   showSpinner(true);
   var err2;
   if(id){
@@ -4853,6 +4968,37 @@ async function deleteUser(id){
   await loadAll();renderSettings();toast(t('set_user_deleted'));
 }
 
+/* ═════════════════════════════════════ GPS-ERKENNUNG ═════════════════════════════════════ */
+function haversineDistance(lat1,lng1,lat2,lng2){
+  const R=6371000,toRad=x=>x*Math.PI/180;
+  const dLat=toRad(lat2-lat1),dLng=toRad(lng2-lng1);
+  const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function getCurrentPosition(){
+  return new Promise((res,rej)=>{
+    if(!navigator.geolocation)return rej(new Error('GPS nicht verfügbar'));
+    navigator.geolocation.getCurrentPosition(
+      p=>res({lat:p.coords.latitude,lng:p.coords.longitude}),
+      e=>rej(e),
+      {timeout:8000,maximumAge:60000,enableHighAccuracy:false}
+    );
+  });
+}
+
+async function detectNearestBS(){
+  try{
+    const pos=await getCurrentPosition();
+    const bsMitKoord=getErlaubteBS().filter(b=>b.status==='aktiv'&&b.lat&&b.lng);
+    if(!bsMitKoord.length)return null;
+    const withDist=bsMitKoord.map(b=>({...b,dist:haversineDistance(pos.lat,pos.lng,parseFloat(b.lat),parseFloat(b.lng))})).filter(b=>b.dist<=(b.radius||100));
+    if(!withDist.length)return null;
+    withDist.sort((a,b)=>a.dist-b.dist);
+    return withDist[0];
+  }catch(e){return null;}
+}
+
 /* ═════════════════════════════════════ NOTFALL-INFO ═════════════════════════════════════ */
 async function renderNotfallInfo(){
   const el=document.getElementById('p-notfallinfo');if(!el)return;
@@ -4868,6 +5014,16 @@ async function renderNotfallInfo(){
   <div id="nf-detail"></div>`;
   const bs=getErlaubteBS();
   if(bs.length===1){document.getElementById('nf-bs-sel').value=bs[0].id;await renderNFDetail();}
+  else tryGPSNotfall();
+}
+
+async function tryGPSNotfall(){
+  const found=await detectNearestBS();
+  if(!found)return;
+  const sel=document.getElementById('nf-bs-sel');
+  if(!sel||sel.value)return;
+  sel.value=found.id;
+  await renderNFDetail();
 }
 
 async function renderNFDetail(){
