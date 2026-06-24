@@ -1093,7 +1093,7 @@ async function loadAll(){
     /* Profile → S.users Format angleichen */
     S.users=(usersR.data||[]).map(u=>({
       id:u.id, username:u.username, name:u.full_name,
-      persnr:u.persnr||'', rolle:u.rolle, aktiv:u.aktiv!==false
+      persnr:u.persnr||'', rolle:u.rolle, aktiv:u.aktiv!==false, istErsthelfer:!!u.ist_ersthelfer
     }));
 
     /* Baustellen */
@@ -4759,12 +4759,13 @@ async function renderSettings(){
       <button class="btn btn-primary btn-sm" onclick="openUserForm()">+ Nutzer</button>
     </div>
     <div class="tw"><table>
-      <thead><tr><th>${t('set_th_name')}</th><th>${t('set_th_user')}</th><th>${t('set_th_persnr')}</th><th>${t('set_th_rolle')}</th><th></th></tr></thead>
+      <thead><tr><th>${t('set_th_name')}</th><th>${t('set_th_user')}</th><th>${t('set_th_persnr')}</th><th>${t('set_th_rolle')}</th><th>Ersthelfer</th><th></th></tr></thead>
       <tbody>${S.users.map(u=>`<tr>
         <td style="font-weight:500">${u.name}</td>
         <td class="mono dim">${u.username}</td>
         <td class="mono dim">${u.persnr}</td>
         <td><span class="rb rb-${u.rolle}">${ROLES(u.rolle)||u.rolle}</span></td>
+        <td style="text-align:center"><button onclick="toggleErsthelfer('${u.id}',${!u.istErsthelfer})" style="background:${u.istErsthelfer?'var(--green-s)':'var(--c3)'};border:1px solid ${u.istErsthelfer?'rgba(126,200,50,.3)':'var(--border)'};color:${u.istErsthelfer?'var(--green)':'var(--text3)'};border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font)">${u.istErsthelfer?'✓ Ja':'—'}</button></td>
         <td>${u.id!==CU.id?`<button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')">Löschen</button>`:'—'}</td>
       </tr>`).join('')}</tbody>
     </table></div>
@@ -4833,6 +4834,14 @@ async function saveUser(){
   showSpinner(false);
   if(error){toast('Fehler: '+error.message,'te');return;}
   await loadAll();closeModal();renderSettings();toast(t('set_user_saved'),'ts');
+}
+
+async function toggleErsthelfer(id, val){
+  const{error}=await SB.from('profiles').update({ist_ersthelfer:val}).eq('id',id);
+  if(error){toast('Fehler: '+error.message,'te');return;}
+  const u=S.users.find(x=>x.id===id);if(u)u.istErsthelfer=val;
+  renderSettings();
+  toast(val?'Als Ersthelfer markiert':'Ersthelfer-Status entfernt','ts');
 }
 
 async function deleteUser(id){
@@ -4934,6 +4943,10 @@ async function renderNFDetail(){
 
 function openNFForm(bsId){
   const nf=S.notfallInfo[bsId]||{};
+  /* Ersthelfer aus zugewiesenen Mitarbeitern automatisch vorschlagen */
+  const zugewieseneIds=Object.entries(S.bsZuweisung).filter(([,bs])=>bs.includes(bsId)).map(([uid])=>uid);
+  const ersthelferAuto=S.users.filter(u=>u.istErsthelfer&&(zugewieseneIds.includes(u.id)||zugewieseneIds.length===0)).map(u=>u.name).join(', ');
+  const ersthelferVal=nf.ersthelfer||ersthelferAuto;
   function fi(id,lbl,val,ph=''){return`<div class="fg"><label>${lbl}</label><input class="fc" id="${id}" value="${val||''}" placeholder="${ph}"></div>`;}
   function fiTel(id,lbl,val){return`<div class="fg"><label>${lbl}</label><input class="fc" id="${id}" type="tel" value="${val||''}" placeholder="z.B. 0221 12345"></div>`;}
   openModal('Notfall-Info bearbeiten',`
@@ -4944,7 +4957,7 @@ function openNFForm(bsId){
     </div>
     ${fi('nff-bg','BG-Mitgliedsnummer',nf.bg_mitgliedsnr)}
     ${fi('nff-ap','Ansprechpartner',nf.ansprechpartner,'Name')}
-    ${fi('nff-eh','Ersthelfer',nf.ersthelfer,'Name')}
+    <div class="fg"><label>Ersthelfer${ersthelferAuto&&!nf.ersthelfer?` <span style="font-size:10px;color:var(--green);font-weight:600">● auto-erkannt</span>`:''}${ersthelferAuto&&!nf.ersthelfer?`<div style="font-size:10px;color:var(--text3);margin-top:2px">Aus zugewiesenen Mitarbeitern mit Ersthelfer-Ausbildung</div>`:''}</label><input class="fc" id="nff-eh" value="${ersthelferVal||''}" placeholder="Name"></div>
     ${fi('nff-bsh','Brandschutzhelfer',nf.brandschutzhelfer,'Name')}
     <div class="div"></div>
     <div class="sec-lbl" style="margin-bottom:8px">🏥 Medizinische Versorgung</div>
