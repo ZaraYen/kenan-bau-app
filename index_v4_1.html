@@ -20,6 +20,8 @@ if(typeof supabase === 'undefined'){
 </script>
 <!-- SheetJS für Excel-Export -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -74,6 +76,8 @@ body{font-family:var(--font);background:var(--c0);color:var(--text);font-size:14
 .nav-btn:hover{background:var(--c3);color:var(--text)}
 .nav-btn.active{background:linear-gradient(90deg,rgba(46,139,192,.18),rgba(106,170,40,.08));color:var(--brand);border-right:2px solid var(--brand)}
 .nav-btn .nav-badge{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--red);border-radius:50%;border:2px solid var(--c1)}
+.nav-btn svg{width:18px;height:18px;stroke-width:1.8;flex-shrink:0}
+.bnav-btn .bicon svg{width:20px;height:20px;stroke-width:1.8}
 .sidebar.expanded .nav-btn .nav-badge{top:8px;right:8px}
 .nav-divider{width:30px;height:1px;background:var(--border);margin:4px 0;flex-shrink:0}
 .sidebar.expanded .nav-divider{width:calc(100% - 16px)}
@@ -1305,22 +1309,23 @@ function getErlaubteBS(){
 }
 
 /* ═════════════════════════════════════ NAV ═════════════════════════════════════ */
+function li(name){return`<i data-lucide="${name}"></i>`;}
 const NAV=[
-  {id:'dashboard',icon:'🏠',lbl:()=>t('nav_dashboard'),show:()=>true},
-  {id:'erfassen',icon:'⏱',lbl:()=>t('nav_erfassen'),show:()=>true},
-  {id:'kolonne',icon:'👷',lbl:()=>t('nav_kolonne'),show:()=>CAN.erfasseKolonne(CU.rolle)},
-  {id:'eintraege',icon:'📋',lbl:()=>t('nav_eintraege'),show:()=>true},
-  {id:'baustellen',icon:'🏗',lbl:()=>t('nav_baustellen'),show:()=>true},
-  {id:'arbeitsschutz',icon:'⛑',lbl:()=>t('nav_arbeitsschutz'),show:()=>true},
-  {id:'betriebsanweisungen',icon:'📄',lbl:()=>'Betriebsanweisungen',show:()=>true},
-  {id:'tagesgb',icon:'📋',lbl:()=>'Tages-GB',show:()=>CAN.fillTagesGB(CU.rolle)},
-  {id:'lmra',icon:'🔍',lbl:()=>'LMRA',show:()=>CAN.lmra(CU.rolle)},
-  {id:'chef',icon:'📊',lbl:()=>t('nav_chef'),show:()=>CAN.seeChef(CU.rolle)},
-  {id:'urlaub',icon:'📅',lbl:()=>t('nav_urlaub'),show:()=>CAN.seeVacation(CU.rolle)},
-  {id:'bautagesbericht',icon:'📋',lbl:()=>t('nav_bautagesbericht'),show:()=>true},
-  {id:'fotodoku',icon:'📸',lbl:()=>t('nav_fotodoku'),show:()=>true},
-  {id:'bszuweisung',icon:'🔑',lbl:()=>'BS-Zuweisung',show:()=>CAN.manageBZuweisung(CU.rolle)},
-  {id:'settings',icon:'⚙',lbl:()=>t('nav_settings'),show:()=>CAN.manageUsers(CU.rolle)}
+  {id:'dashboard',icon:li('layout-dashboard'),lbl:()=>t('nav_dashboard'),show:()=>true},
+  {id:'erfassen',icon:li('clock'),lbl:()=>t('nav_erfassen'),show:()=>true},
+  {id:'kolonne',icon:li('users'),lbl:()=>t('nav_kolonne'),show:()=>CAN.erfasseKolonne(CU.rolle)},
+  {id:'eintraege',icon:li('list'),lbl:()=>t('nav_eintraege'),show:()=>true},
+  {id:'baustellen',icon:li('hard-hat'),lbl:()=>t('nav_baustellen'),show:()=>true},
+  {id:'arbeitsschutz',icon:li('shield'),lbl:()=>t('nav_arbeitsschutz'),show:()=>true},
+  {id:'betriebsanweisungen',icon:li('book-open'),lbl:()=>'Betriebsanweisungen',show:()=>true},
+  {id:'tagesgb',icon:li('clipboard-list'),lbl:()=>'Tages-GB',show:()=>CAN.fillTagesGB(CU.rolle)},
+  {id:'lmra',icon:li('search'),lbl:()=>'LMRA',show:()=>CAN.lmra(CU.rolle)},
+  {id:'chef',icon:li('bar-chart-2'),lbl:()=>t('nav_chef'),show:()=>CAN.seeChef(CU.rolle)},
+  {id:'urlaub',icon:li('calendar'),lbl:()=>t('nav_urlaub'),show:()=>CAN.seeVacation(CU.rolle)},
+  {id:'bautagesbericht',icon:li('file-text'),lbl:()=>t('nav_bautagesbericht'),show:()=>true},
+  {id:'fotodoku',icon:li('camera'),lbl:()=>t('nav_fotodoku'),show:()=>true},
+  {id:'bszuweisung',icon:li('key'),lbl:()=>'BS-Zuweisung',show:()=>CAN.manageBZuweisung(CU.rolle)},
+  {id:'settings',icon:li('settings'),lbl:()=>t('nav_settings'),show:()=>CAN.manageUsers(CU.rolle)}
 ];
 
 let sidebarOpen=false;
@@ -1348,6 +1353,7 @@ function buildNav(){
     bb.onclick=()=>showPage(n.id);
     bn.appendChild(bb);
   });
+  if(typeof lucide!=='undefined')lucide.createIcons();
 }
 
 async function showPage(id){
