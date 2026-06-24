@@ -1312,6 +1312,7 @@ const NAV=[
   {id:'eintraege',icon:'📋',lbl:()=>t('nav_eintraege'),show:()=>true},
   {id:'baustellen',icon:'🏗',lbl:()=>t('nav_baustellen'),show:()=>true},
   {id:'arbeitsschutz',icon:'⛑',lbl:()=>t('nav_arbeitsschutz'),show:()=>true},
+  {id:'betriebsanweisungen',icon:'📄',lbl:()=>'Betriebsanweisungen',show:()=>true},
   {id:'tagesgb',icon:'📋',lbl:()=>'Tages-GB',show:()=>CAN.fillTagesGB(CU.rolle)},
   {id:'lmra',icon:'🔍',lbl:()=>'LMRA',show:()=>CAN.lmra(CU.rolle)},
   {id:'chef',icon:'📊',lbl:()=>t('nav_chef'),show:()=>CAN.seeChef(CU.rolle)},
@@ -1319,7 +1320,6 @@ const NAV=[
   {id:'bautagesbericht',icon:'📋',lbl:()=>t('nav_bautagesbericht'),show:()=>true},
   {id:'fotodoku',icon:'📸',lbl:()=>t('nav_fotodoku'),show:()=>true},
   {id:'bszuweisung',icon:'🔑',lbl:()=>'BS-Zuweisung',show:()=>CAN.manageBZuweisung(CU.rolle)},
-  {id:'betriebsanweisungen',icon:'📄',lbl:()=>'Betriebsanweisungen',show:()=>true},
   {id:'settings',icon:'⚙',lbl:()=>t('nav_settings'),show:()=>CAN.manageUsers(CU.rolle)}
 ];
 
