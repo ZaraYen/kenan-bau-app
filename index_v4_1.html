@@ -1189,7 +1189,7 @@ async function doLogin(){
   S.eintraege=await loadEintraege({});
   document.getElementById('login-screen').style.display='none';
   document.getElementById('root').style.display='flex';
-  buildNav();updateTopbar();await buildPages();initNotfallBtn();
+  buildNav();console.log('NAV items:', NAV.filter(n=>n.show()).map(n=>n.id));updateTopbar();await buildPages();initNotfallBtn();
 }
 
 async function doLogout(){
@@ -1231,7 +1231,7 @@ async function doLogout(){
         LANG='de';
         document.getElementById('login-screen').style.display='none';
         document.getElementById('root').style.display='flex';
-        buildNav();updateTopbar();await buildPages();initNotfallBtn();
+        buildNav();console.log('NAV items:', NAV.filter(n=>n.show()).map(n=>n.id));updateTopbar();await buildPages();initNotfallBtn();
       }
     }
   }catch(e){
