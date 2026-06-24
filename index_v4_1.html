@@ -95,19 +95,35 @@ body{font-family:var(--font);background:var(--c0);color:var(--text);font-size:14
 .bnav-btn .bicon{font-size:20px;line-height:1}
 .bnav-btn.active{color:#fff;font-weight:600}
 .bnav-btn .bnav-badge{position:absolute;top:5px;right:calc(50% - 14px);width:7px;height:7px;background:var(--red);border-radius:50%;border:2px solid #1a3a6a}
+/* ── HERO DASHBOARD ── */
+.dash-hero{background:#1a3a6a;padding:18px 16px 30px;margin:-20px -20px 0}
+.dash-hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.dash-hero-greeting{color:rgba(255,255,255,.65);font-size:11px}
+.dash-hero-name{color:#fff;font-size:17px;font-weight:600;margin-top:2px}
+.dash-hero-av{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.dash-stat-card{background:#fff;border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dash-stat-nums{display:flex;gap:18px;align-items:center}
+.dash-stat-sep{width:1px;background:#e5e7eb;height:32px}
+.dash-stat-lbl{font-size:10px;color:#6b7280;margin-bottom:2px}
+.dash-stat-val{font-size:20px;font-weight:700;color:#1a3a6a;line-height:1}
+.dash-erfassen-btn{background:#1a3a6a;color:#fff;border:none;border-radius:10px;padding:10px 14px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
 /* ── KACHEL TILES ── */
-.kachel-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:4px}
-.kachel-tile{background:var(--c2);border:1px solid var(--border);border-radius:var(--r);padding:22px 12px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:all .15s;text-align:center;-webkit-tap-highlight-color:transparent}
-.kachel-tile:hover,.kachel-tile:active{border-color:var(--brand);background:var(--c3);transform:scale(.97)}
-.kachel-tile-icon{width:54px;height:54px;border-radius:50%;background:rgba(46,139,192,0.13);display:flex;align-items:center;justify-content:center;color:var(--brand)}
-.kachel-tile-icon svg{width:26px;height:26px;stroke-width:1.8}
-.kachel-tile-lbl{font-size:12px;font-weight:500;color:var(--text);line-height:1.3}
+.kachel-section{background:var(--c0);border-radius:14px 14px 0 0;padding:14px;margin-top:-12px}
+.kachel-section-title{font-size:10px;font-weight:600;color:var(--text3);margin-bottom:10px;letter-spacing:.5px;text-transform:uppercase}
+.kachel-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.kachel-tile{background:var(--c2);border:1px solid var(--border);border-radius:12px;padding:13px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.kachel-tile:hover,.kachel-tile:active{border-color:var(--brand);transform:scale(.97)}
+.kachel-tile-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.kachel-tile-icon svg{width:20px;height:20px;stroke-width:1.8}
+.kachel-tile-lbl{font-size:11px;font-weight:600;color:var(--text);line-height:1.3}
+.kachel-tile-sub{font-size:9px;color:var(--text3);margin-top:1px}
 
 @media(max-width:767px){
   .sidebar{display:none}
   .bottom-nav{display:block}
   .topbar .t-user .t-uname,.topbar .t-user .t-urole{display:none}
   .page{padding:14px}
+  .dash-hero{margin:-14px -14px 0;padding:16px 14px 26px}
 }
 @media(min-width:768px){
   .main{padding-left:0}
@@ -1816,25 +1832,56 @@ async function renderDashboard(){
     <div class="sc"><span class="sc-accent" style="background:var(--red)"></span><div class="sc-val">${pendAS.length}</div><div class="sc-lbl">${t('dash_as_open')}</div></div>`;
   }
 
-  const recent=allMine.slice(0,6);
+  const today=now.toISOString().slice(0,10);
+  const todayH=mine.filter(e=>e.datum===today).reduce((a,b)=>a+b.stunden,0);
   const locale=LANG==='ro'?'ro-RO':'de-DE';
+  const ini=CU.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const TCOL={
+    erfassen:{bg:'#dbeafe',c:'#2563eb',sub:'Zeit buchen'},
+    kolonne:{bg:'#dcfce7',c:'#16a34a',sub:'Team erfassen'},
+    eintraege:{bg:'#f3f4f6',c:'#374151',sub:'Übersicht'},
+    baustellen:{bg:'#fef3c7',c:'#d97706',sub:'Projekte'},
+    arbeitsschutz:{bg:'#ede9fe',c:'#7c3aed',sub:'Sicherheit'},
+    betriebsanweisungen:{bg:'#fce7f3',c:'#be123c',sub:'Vorschriften'},
+    tagesgb:{bg:'#cffafe',c:'#0891b2',sub:'Gefährdung'},
+    lmra:{bg:'#e0e7ff',c:'#4338ca',sub:'Risikocheck'},
+    chef:{bg:'#dbeafe',c:'#1d4ed8',sub:'Auswertung'},
+    urlaub:{bg:'#f0fdf4',c:'#15803d',sub:'Abwesenheit'},
+    bautagesbericht:{bg:'#ffedd5',c:'#ea580c',sub:'Tagesbericht'},
+    fotodoku:{bg:'#fef9c3',c:'#ca8a04',sub:'Bilder'},
+    bszuweisung:{bg:'#ccfbf1',c:'#0d9488',sub:'Zuweisung'},
+    settings:{bg:'#f1f5f9',c:'#475569',sub:'Verwaltung'},
+  };
+  const tiles=NAV.filter(n=>n.show()&&n.id!=='dashboard').map(n=>{
+    const m=TCOL[n.id]||{bg:'#f3f4f6',c:'#374151',sub:''};
+    return `<div class="kachel-tile" onclick="showPage('${n.id}')">
+      <div class="kachel-tile-icon" style="background:${m.bg};color:${m.c}">${n.icon}</div>
+      <div><div class="kachel-tile-lbl">${n.lbl()}</div><div class="kachel-tile-sub">${m.sub}</div></div>
+    </div>`;
+  }).join('');
   el.innerHTML=`
-  <div class="ph"><h2>${t('dash_greet')}, ${CU.name.split(' ')[0]}! 👋</h2><p>${now.toLocaleDateString(locale,{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</p></div>
-  <div class="sg sg4">
-    <div class="sc"><span class="sc-accent" style="background:var(--blue)"></span><div class="sc-val">${S.eintraege.filter(e=>e.userId===CU.id&&e.datum.startsWith(ms)).length}</div><div class="sc-lbl">${t('dash_bookings')} ${now.toLocaleDateString(locale,{month:'long'})}</div></div>
-    ${CAN.seeChef(CU.rolle)?`
-    <div class="sc"><span class="sc-accent" style="background:var(--green)"></span><div class="sc-val">${totalH.toFixed(1)}h</div><div class="sc-lbl">${t('dash_my_hours')}</div></div>
-    <div class="sc"><span class="sc-accent" style="background:var(--blue)"></span><div class="sc-val">${laH.toFixed(1)}h</div><div class="sc-lbl">${t('dash_lohnarbeit')}</div></div>
-    `:''}
-    ${allStats}
+  <div class="dash-hero">
+    <div class="dash-hero-top">
+      <div>
+        <div class="dash-hero-greeting">${now.toLocaleDateString(locale,{weekday:'long',day:'numeric',month:'long'})}</div>
+        <div class="dash-hero-name">${t('dash_greet')}, ${CU.name.split(' ')[0]}!</div>
+      </div>
+      <div class="dash-hero-av">${ini}</div>
+    </div>
+    <div class="dash-stat-card">
+      <div class="dash-stat-nums">
+        <div><div class="dash-stat-lbl">Heute</div><div class="dash-stat-val">${todayH.toFixed(1)} h</div></div>
+        <div class="dash-stat-sep"></div>
+        <div><div class="dash-stat-lbl">${now.toLocaleDateString(locale,{month:'long'})}</div><div class="dash-stat-val">${totalH.toFixed(1)} h</div></div>
+      </div>
+      <button class="dash-erfassen-btn" onclick="showPage('erfassen')">+ ${t('nav_erfassen')}</button>
+    </div>
   </div>
-  ${pendAS.length>0?`<div class="alert alert-d">⛑ <strong>${pendAS.length}</strong> ${t('nav_baustellen')} — ${t('dash_as_open')}: ${pendAS.map(b=>b.name).join(', ')}</div>`:''}
-  ${isAdmin&&pendAbs.length>0?`<div class="alert alert-w">⏳ <strong>${pendAbs.length}</strong> ${t('uv_pending')}</div>`:''}
-  <div class="kachel-grid">${NAV.filter(n=>n.show()&&n.id!=='dashboard').map(n=>`
-    <div class="kachel-tile" onclick="showPage('${n.id}')">
-      <div class="kachel-tile-icon">${n.icon}</div>
-      <div class="kachel-tile-lbl">${n.lbl()}</div>
-    </div>`).join('')}
+  ${pendAS.length>0?`<div class="alert alert-d" style="margin:10px 0 0">⛑ <strong>${pendAS.length}</strong> ${t('nav_baustellen')} — ${t('dash_as_open')}</div>`:''}
+  ${isAdmin&&pendAbs.length>0?`<div class="alert alert-w" style="margin:8px 0 0">⏳ <strong>${pendAbs.length}</strong> ${t('uv_pending')}</div>`:''}
+  <div class="kachel-section">
+    <div class="kachel-section-title">Alle Funktionen</div>
+    <div class="kachel-grid">${tiles}</div>
   </div>`;
   if(typeof lucide!=='undefined')lucide.createIcons();
 }
